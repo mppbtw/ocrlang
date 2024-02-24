@@ -7,8 +7,8 @@ pub enum Token<'a> {
     Equals,
     DoubleEquals,
     NotEqual,
-    GThanOrequals,
-    LThanOrequals,
+    GThanOrEqual,
+    LThanOrEqual,
     GThan,
     LThan,
     Global,
@@ -20,6 +20,7 @@ pub enum Token<'a> {
     LeftSquareBracket,
     RightSquareBracket,
     For,
+    Endfor,
     Next,
     While,
     Endwhile,
@@ -64,6 +65,7 @@ static KEYWORDS: LazyLock<HashMap<&str, Token>> = LazyLock::new(|| {
     HashMap::from([
         ("return", Return),
         ("for", For),
+        ("endfor", Endfor),
         ("global", Global),
         ("do", Do),
         ("until", Until),
@@ -93,14 +95,76 @@ pub fn lookup_keyword(ident: &str) -> Token {
     }
 }
 
-/// Fancy names of tokens used for debug/error prints; this does not give you
-/// any data stored in the token like the value of an integer or a string. The
-/// formatting goes like this:
-/// * Keywords are the same as they appear in code, Token::For => 'for'
-/// * Operators like `>`, `==` are given literal names in UpperCamelCase:
-///   'GreaterThan', 'DoubleEquals'
-/// * Special characters are the same: Token::Colon => 'Colon'
 static PRETTY_TOKEN_NAMES: LazyLock<HashMap<Token, &str>> = LazyLock::new(|| {
     use Token::*;
-    HashMap::from([(While, "while"), (For, "for")])
+    HashMap::from([
+        (While, "while"),
+        (Endwhile, "endwhile"),
+        (For, "for"),
+        (Endfor, "endfor"),
+        (If, "id"),
+        (Equals, "Equals!"),
+        (DoubleEquals, "DoubleEquals"),
+        (NotEqual, "DoubleEquals"),
+        (GThanOrEqual, "DoubleEquals"),
+        (LThanOrEqual, "DoubleEquals"),
+        (GThan, "DoubleEquals"),
+        (LThan, "DoubleEquals"),
+        (Global, "DoubleEquals"),
+        (LeftBracket, "DoubleEquals"),
+        (RightBracket, "DoubleEquals"),
+        (LeftSquirly, "DoubleEquals"),
+        (RightSquirly, "DoubleEquals"),
+        (LeftSquareBracket, "DoubleEquals"),
+        (RightSquareBracket, "DoubleEquals"),
+        (Next, "DoubleEquals"),
+        (Do, "DoubleEquals"),
+        (Until, "DoubleEquals"),
+        (Or, "DoubleEquals"),
+        (Not, "DoubleEquals"),
+        (Plus, "DoubleEquals"),
+        (Asterisk, "DoubleEquals"),
+        (And, "DoubleEquals"),
+        (FSlash, "DoubleEquals"),
+        (BSlash, "DoubleEquals"),
+        (Minus, "DoubleEquals"),
+        (Then, "DoubleEquals"),
+        (Switch, "DoubleEquals"),
+        (Case, "DoubleEquals"),
+        (Default, "DoubleEquals"),
+        (Endswitch, "DoubleEquals"),
+        (Procedure, "DoubleEquals"),
+        (Endprocedure, "DoubleEquals"),
+        (Div, "DoubleEquals"),
+        (Mod, "DoubleEquals"),
+        (Carat, "DoubleEquals"),
+        (Colon, "DoubleEquals"),
+        (Comma, "DoubleEquals"),
+        (Endif, "DoubleEquals"),
+        (Return, "DoubleEquals"),
+        (Function, "DoubleEquals"),
+        (Endfunction, "DoubleEquals"),
+        (Eof, "DoubleEquals"),
+    ])
 });
+
+impl Token<'_> {
+    /// Fancy names of tokens used for debug/error prints; this does not give
+    /// you any data stored in the token like the value of an integer or a
+    /// string. ``` rust
+    /// assert!(get_pretty_token_name(Token::For) == "for");
+    /// assert!(get_pretty_token_name(Token::Colon) == "Colon");
+    /// assert!(get_pretty_token_name(Token::Identifier) == "Identifier");
+    /// ```
+    pub fn pretty_name(&self) -> String {
+        // The hashmap only works for tokens that don't hold data as that requires
+        // expression matching, there might be a better solution but for now they
+        // are checked in this abstraction
+        (match self {
+            Token::Identifier(_) => "Identifier",
+            Token::StringLiteral(_) => "StringLiteral",
+            _ => PRETTY_TOKEN_NAMES.get_key_value(&self).unwrap().1,
+        })
+        .to_owned()
+    }
+}
