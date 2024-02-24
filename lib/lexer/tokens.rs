@@ -1,3 +1,33 @@
+use std::sync::LazyLock;
+use std::collections::HashMap;
+
+/// Map of the keyword's literal appearance in code to the tokens of that literal,
+/// e.g. 'return' => Token::Return
+static KEYWORDS: LazyLock<HashMap<&str, Token>> = LazyLock::new(|| {
+    use Token::*;
+
+    HashMap::from([
+        ("return", Return),
+        ("for", For),
+        ("global", Global),
+        ("do", Do),
+        ("until", Until),
+        ("if", If),
+        ("OR", Or),
+        ("NOT", Not),
+        ("AND", And),
+        ("while", While),
+        ("endwhile", Endwhile),
+        ("next", Next),
+        ("endif", Endif),
+        ("procedure", Procedure),
+        ("endprocedure", Endprocedure),
+        ("function", Function),
+        ("endfunction", Endfunction),
+    ])
+});
+
+#[derive(Hash, PartialEq, Eq, Debug, Default)]
 pub enum Token {
     Identifier,
     Equal,
@@ -43,6 +73,11 @@ pub enum Token {
     Colon,
     Number(i128),
     Comma,
-    Eof,
+    Endif,
     Return,
+    Function,
+    Endfunction,
+
+    #[default]
+    Eof
 }

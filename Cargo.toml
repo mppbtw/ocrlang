@@ -12,6 +12,3 @@ path = "./lib/lib.rs"
 [[bin]]
 name = "ocr"
 path = "./bin/main.rs"
-
-[dependencies]
-

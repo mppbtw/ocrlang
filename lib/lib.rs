@@ -1,3 +1,4 @@
+#![feature(lazy_cell)]
 mod lexer;
 
 pub use lexer::Token;
