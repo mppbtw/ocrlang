@@ -1,12 +1,11 @@
 use crate::lexer::Token;
-use std::default::Default;
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Lexer<'a> {
-    pos: usize,
+    pos:      usize,
     read_pos: usize,
-    input: &'a str,
-    ch: u8,
+    input:    &'a str,
+    ch:       u8,
 }
 
 impl<'a> Lexer<'a> {
