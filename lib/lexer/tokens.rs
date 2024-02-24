@@ -1,35 +1,10 @@
 use std::sync::LazyLock;
 use std::collections::HashMap;
 
-/// Map of the keyword's literal appearance in code to the tokens of that literal,
-/// e.g. 'return' => Token::Return
-static KEYWORDS: LazyLock<HashMap<&str, Token>> = LazyLock::new(|| {
-    use Token::*;
 
-    HashMap::from([
-        ("return", Return),
-        ("for", For),
-        ("global", Global),
-        ("do", Do),
-        ("until", Until),
-        ("if", If),
-        ("OR", Or),
-        ("NOT", Not),
-        ("AND", And),
-        ("while", While),
-        ("endwhile", Endwhile),
-        ("next", Next),
-        ("endif", Endif),
-        ("procedure", Procedure),
-        ("endprocedure", Endprocedure),
-        ("function", Function),
-        ("endfunction", Endfunction),
-    ])
-});
-
-#[derive(Hash, PartialEq, Eq, Debug, Default)]
-pub enum Token {
-    Identifier,
+#[derive(Hash, PartialEq, Eq, Debug, Default, Clone, Copy)]
+pub enum Token<'a> {
+    Identifier(&'a str),
     Equal,
     DoubleEqual,
     NotEqual,
@@ -38,7 +13,7 @@ pub enum Token {
     GThan,
     LThan,
     Global,
-    StringLiteral(String),
+    StringLiteral(&'a str),
     LeftBracket,
     RightBracket,
     LeftSquirly,
@@ -80,4 +55,40 @@ pub enum Token {
 
     #[default]
     Eof
+}
+
+/// Map of the keyword's literal appearance in code to the tokens of that literal,
+/// e.g. 'return' => Token::Return
+static KEYWORDS: LazyLock<HashMap<&str, Token>> = LazyLock::new(|| {
+    use Token::*;
+
+    HashMap::from([
+        ("return", Return),
+        ("for", For),
+        ("global", Global),
+        ("do", Do),
+        ("until", Until),
+        ("if", If),
+        ("OR", Or),
+        ("NOT", Not),
+        ("AND", And),
+        ("while", While),
+        ("endwhile", Endwhile),
+        ("next", Next),
+        ("endif", Endif),
+        ("procedure", Procedure),
+        ("endprocedure", Endprocedure),
+        ("function", Function),
+        ("endfunction", Endfunction),
+    ])
+});
+
+pub fn lookup_keyword(ident: &str) -> Token {
+
+    // I don't like using `get_key_value` here but apparently `LazyLock<HashMap<_, _>>` doesn't have a
+    // regular get method for just the value.
+    match KEYWORDS.get_key_value(ident) {
+        Some((_, b)) => b.to_owned(),
+        None => Token::Identifier(ident)
+    }
 }
