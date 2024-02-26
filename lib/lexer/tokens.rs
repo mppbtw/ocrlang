@@ -121,7 +121,6 @@ static PRETTY_TOKEN_NAMES: LazyLock<HashMap<Token, &str>> = LazyLock::new(|| {
         (Endswitch, "endswitch"),
         (Procedure, "procedure"),
         (Endprocedure, "endprocedure"),
-
         (Equals, "Equals!"),
         (DoubleEquals, "DoubleEquals"),
         (NotEqual, "NotEqual"),
