@@ -52,9 +52,10 @@ pub enum Token<'a> {
     Return,
     Function,
     Endfunction,
+    Eof,
 
     #[default]
-    Eof,
+    Illegal,
 }
 
 /// Map of the keyword's literal appearance in code to the tokens of that
@@ -145,6 +146,7 @@ static PRETTY_TOKEN_NAMES: LazyLock<HashMap<Token, &str>> = LazyLock::new(|| {
         (Colon, "Colon"),
         (Comma, "Comma"),
         (Eof, "EndOfFile"),
+        (Illegal, "Illegal"),
     ])
 });
 
