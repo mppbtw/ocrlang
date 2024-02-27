@@ -1,9 +1,11 @@
+use super::tokens::lookup_keyword;
 use crate::lexer::Token;
 
-use super::tokens::lookup_keyword;
-
 #[derive(Debug, Clone)]
-pub enum LexerError {}
+pub enum LexerError {
+    InvalidNumberLiteral,
+    TooLargeInteger,
+}
 
 #[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Lexer<'a> {
@@ -79,6 +81,8 @@ impl<'a> Lexer<'a> {
             _ => {
                 if self.ch.is_ascii_alphanumeric() {
                     lookup_keyword(self.read_identifier())
+                } else if self.ch.is_ascii_digit() {
+                    self.read_number()?
                 } else {
                     Token::Illegal
                 }
@@ -86,6 +90,20 @@ impl<'a> Lexer<'a> {
         };
         self.read_char();
         Ok(tok)
+    }
+
+    fn read_number(&mut self) -> Result<Token<'a>, LexerError> {
+        let pos = self.pos;
+        while self.ch.is_ascii_digit() {
+            self.read_char();
+        }
+        let num = match self.input[pos..self.pos].to_owned().parse::<i128>() {
+            Ok(n) => n,
+            Err(_) => return Err(LexerError::TooLargeInteger),
+        };
+        self.read_pos-= 1;
+        self.pos-= 1;
+        Ok(Token::Number(num))
     }
 
     fn peek_char(&self) -> u8 {
