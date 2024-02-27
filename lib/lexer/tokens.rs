@@ -164,7 +164,7 @@ impl Token<'_> {
         (match self {
             Token::Identifier(_) => "Identifier",
             Token::StringLiteral(_) => "StringLiteral",
-            _ => PRETTY_TOKEN_NAMES.get_key_value(&self).unwrap().1,
+            _ => PRETTY_TOKEN_NAMES.get_key_value(self).unwrap().1,
         })
         .to_owned()
     }
