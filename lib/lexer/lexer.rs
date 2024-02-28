@@ -50,6 +50,7 @@ impl<'a> Lexer<'a> {
             b':' => Token::Colon,
             b'{' => Token::LSquirly,
             b'}' => Token::RSquirly,
+            0 => Token::Eof,
             b'>' => {
                 if self.peek_char() == b'=' {
                     Token::GThanOrEqual
@@ -79,7 +80,7 @@ impl<'a> Lexer<'a> {
                 }
             }
             _ => {
-                if self.ch.is_ascii_alphanumeric() {
+                if self.ch.is_ascii_alphabetic() {
                     lookup_keyword(self.read_identifier())
                 } else if self.ch.is_ascii_digit() {
                     self.read_number()?

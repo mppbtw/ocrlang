@@ -152,11 +152,6 @@ static PRETTY_TOKEN_NAMES: LazyLock<HashMap<Token, &str>> = LazyLock::new(|| {
 
 impl Token<'_> {
     /// Fancy names of tokens used for debug/error prints.
-    /// ```
-    /// assert!(get_pretty_token_name(Token::For) == "for");
-    /// assert!(get_pretty_token_name(Token::Colon) == "Colon");
-    /// assert!(get_pretty_token_name(Token::Identifier) == "Identifier");
-    /// ```
     pub fn pretty_name(&self) -> String {
         // The hashmap only works for tokens that don't hold data as that requires
         // expression matching, there might be a better solution but for now they
