@@ -102,8 +102,8 @@ impl<'a> Lexer<'a> {
             Ok(n) => n,
             Err(_) => return Err(LexerError::TooLargeInteger),
         };
-        self.read_pos-= 1;
-        self.pos-= 1;
+        self.read_pos -= 1;
+        self.pos -= 1;
         Ok(Token::Number(num))
     }
 
