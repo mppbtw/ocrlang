@@ -8,7 +8,3 @@ edition = "2021"
 [lib]
 name = "libocr"
 path = "./lib/lib.rs"
-
-[[bin]]
-name = "ocr"
-path = "./bin/main.rs"
