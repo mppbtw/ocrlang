@@ -28,7 +28,8 @@ fn test_tokenise_brackets() {
         Token::LSquareBracket,
         Token::RSquareBracket,
         Token::LParenthasis,
-        Token::RParenthasis
+        Token::RParenthasis,
+        Token::Eof,
     ];
     let mut i = 0;
     let mut lexer = Lexer::new(input);
@@ -36,7 +37,6 @@ fn test_tokenise_brackets() {
     loop {
         let expected_token = &expected[i];
         let tok = lexer.next_token().unwrap();
-        dbg!(&tok);
         assert_eq!(tok, *expected_token);
         if matches!(tok, Token::Eof) {
             break;
