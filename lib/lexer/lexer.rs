@@ -37,6 +37,7 @@ impl<'a> Lexer<'a> {
             }
         }
 
+        dbg!(self.pos, self.read_pos, self.ch as char);
         let tok: Token = match self.ch {
             b'+' => Token::Plus,
             b'-' => Token::Minus,
@@ -52,6 +53,7 @@ impl<'a> Lexer<'a> {
             0 => Token::Eof,
             b'>' => {
                 if self.peek_char() == b'=' {
+                    self.read_char();
                     Token::GThanOrEqual
                 } else {
                     Token::GThan
@@ -59,6 +61,7 @@ impl<'a> Lexer<'a> {
             }
             b'<' => {
                 if self.peek_char() == b'=' {
+                    self.read_char();
                     Token::LThanOrEqual
                 } else {
                     Token::LThan
@@ -66,6 +69,7 @@ impl<'a> Lexer<'a> {
             }
             b'=' => {
                 if self.peek_char() == b'=' {
+                    self.read_char();
                     Token::DoubleEquals
                 } else {
                     Token::Equals
@@ -73,6 +77,7 @@ impl<'a> Lexer<'a> {
             }
             b'!' => {
                 if self.peek_char() == b'=' {
+                    self.read_char();
                     Token::NotEqual
                 } else {
                     Token::Illegal
@@ -128,12 +133,6 @@ impl<'a> Lexer<'a> {
         while self.ch.is_ascii_whitespace() {
             self.read_char();
         }
-
-        // This needs to subtract because when calling `read_char` at the last character
-        // of the identier, the `read_pos` advances to 2 places beyond the
-        // identifier; this is fatal if the next character isn't whitespace and
-        // it messes up the column/line count
-        self.read_pos -= 1;
     }
 
     fn skip_to_next_line(&mut self) {
