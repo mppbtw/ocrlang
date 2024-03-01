@@ -38,7 +38,6 @@ impl<'a> Lexer<'a> {
         }
 
         let tok: Token = match self.ch {
-            b'\\' => Token::BSlash,
             b'+' => Token::Plus,
             b'-' => Token::Minus,
             b'(' => Token::LParenthasis,
