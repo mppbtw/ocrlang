@@ -29,13 +29,8 @@ impl<'a> Lexer<'a> {
         self.munch_whitespace();
 
         // Deal with comments
-        loop {
-            if self.ch == b'/' && self.peek_char() == b'/' {
-                self.skip_to_next_line();
-                self.munch_whitespace();
-            } else {
-                break;
-            }
+        if self.ch == b'/' && self.peek_char() == b'/' {
+            self.skip_to_end_of_line();
         }
 
         dbg!(self.pos, self.read_pos, self.ch as char);
@@ -51,6 +46,7 @@ impl<'a> Lexer<'a> {
             b':' => Token::Colon,
             b'{' => Token::LSquirly,
             b'}' => Token::RSquirly,
+            b'\n' => Token::Newline,
             0 => Token::Eof,
             b'>' => {
                 if self.peek_char() == b'=' {
@@ -126,16 +122,15 @@ impl<'a> Lexer<'a> {
     }
 
     fn munch_whitespace(&mut self) {
-        while self.ch.is_ascii_whitespace() {
+        while self.ch.is_ascii_whitespace() && self.ch != b'\n' {
             self.read_char();
         }
     }
 
-    fn skip_to_next_line(&mut self) {
+    fn skip_to_end_of_line(&mut self) {
         while self.ch != b'\n' && self.ch != 0 {
             self.read_char();
         }
-        self.read_char(); // Skip the actual \n itself
     }
 
     fn read_identifier(&mut self) -> &'a str {

@@ -60,6 +60,8 @@ pub enum Token<'a> {
     Div,
     Mod,
 
+    Newline,
+
     #[default]
     Illegal,
 }
@@ -158,6 +160,7 @@ static PRETTY_TOKEN_NAMES: LazyLock<HashMap<Token, &str>> = LazyLock::new(|| {
         (Colon, "Colon"),
         (Comma, "Comma"),
         (Eof, "EndOfFile"),
+        (Newline, "Newline"),
         (Illegal, "Illegal"),
     ])
 });

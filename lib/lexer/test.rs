@@ -94,6 +94,7 @@ fn test_tokenise_keywords() {
         Token::And,
         Token::If,
         Token::Or,
+        Token::Newline,
         Token::Not,
         Token::Endif,
         Token::Return,
@@ -132,8 +133,12 @@ function // This is a comment
          global
 endfunction";
     let expected = vec![
+        Token::Newline,
         Token::Function,
+        Token::Newline,
+        Token::Newline,
         Token::Global,
+        Token::Newline,
         Token::Endfunction,
         Token::Eof,
     ];
