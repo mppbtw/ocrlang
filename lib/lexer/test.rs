@@ -121,3 +121,29 @@ fn test_tokenise_keywords() {
         i += 1;
     }
 }
+
+#[test]
+fn test_tokenise_ignore_comments() {
+    let input = "
+function // This is a comment
+         global
+endfunction";
+    let expected = vec![
+        Token::Function,
+        Token::Global,
+        Token::Endfunction,
+        Token::Eof,
+    ];
+
+    let mut i = 0;
+    let mut lexer = Lexer::new(input);
+    loop {
+        let expected_token = &expected[i];
+        let tok = lexer.next_token().unwrap();
+        assert_eq!(tok, *expected_token);
+        if matches!(tok, Token::Eof) {
+            break;
+        }
+        i += 1;
+    }
+}

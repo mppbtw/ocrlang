@@ -32,6 +32,7 @@ impl<'a> Lexer<'a> {
         loop {
             if self.ch == b'/' && self.peek_char() == b'/' {
                 self.skip_to_next_line();
+                self.munch_whitespace();
             } else {
                 break;
             }
@@ -139,6 +140,7 @@ impl<'a> Lexer<'a> {
         while self.ch != b'\n' && self.ch != 0 {
             self.read_char();
         }
+        self.read_char(); // Skip the actual \n itself
     }
 
     fn read_identifier(&mut self) -> &'a str {
