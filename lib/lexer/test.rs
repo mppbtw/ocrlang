@@ -148,3 +148,8 @@ endfunction";
         i += 1;
     }
 }
+
+#[test]
+fn test_tokenise_empty_input() {
+    assert!(Token::Eof == Lexer::new("").next_token().unwrap());
+}
