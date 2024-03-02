@@ -1,10 +1,11 @@
 mod tokens;
 pub use tokens::Token;
 
-#[allow(unused, clippy::module_inception)]
+#[allow(clippy::module_inception)]
 mod lexer;
 
 #[cfg(test)]
 mod test;
 
 pub use lexer::Lexer;
+pub use lexer::LexerError;

@@ -25,7 +25,7 @@ impl<'a> Lexer<'a> {
         l
     }
 
-    pub fn next_token(&mut self) -> Result<Token, LexerError> {
+    pub fn next_token(&mut self) -> Result<Token<'a>, LexerError> {
         self.munch_whitespace();
 
         // Deal with comments
@@ -103,13 +103,8 @@ impl<'a> Lexer<'a> {
         while self.ch.is_ascii_digit() {
             self.read_char();
         }
-        let num = match self.input[pos..self.pos].to_owned().parse::<i128>() {
-            Ok(n) => n,
-            Err(_) => return Err(LexerError::TooLargeInteger),
-        };
         self.read_pos -= 1;
-        self.pos -= 1;
-        Ok(Token::Number(num))
+        Ok(Token::NumberLiteral(&self.input[pos..self.pos]))
     }
 
     fn peek_char(&self) -> u8 {

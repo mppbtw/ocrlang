@@ -3,8 +3,10 @@ use super::Token;
 
 #[test]
 fn test_tokenise_integers() {
-    let input = "123   2";
-    let expected = vec![Token::Number(123), Token::Number(2), Token::Eof];
+    // The 'for' at the end ensures that the lexer does not become misaligned after reading the
+    // number
+    let input = "123   22for";
+    let expected = vec![Token::NumberLiteral("123"), Token::NumberLiteral("22"), Token::For, Token::Eof];
     let mut i = 0;
     let mut lexer = Lexer::new(input);
 
@@ -60,7 +62,7 @@ fn test_tokenise_symbols() {
         Token::LThanOrEqual,
         Token::LThan,
         Token::NotEqual,
-        Token::Eof
+        Token::Eof,
     ];
     let mut i = 0;
     let mut lexer = Lexer::new(input);
