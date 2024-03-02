@@ -5,3 +5,6 @@ pub use parser::Parser;
 
 #[allow(unused)]
 mod ast;
+
+#[cfg(test)]
+mod test;
