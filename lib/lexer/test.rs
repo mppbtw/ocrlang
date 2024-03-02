@@ -126,6 +126,7 @@ fn test_tokenise_keywords() {
 fn test_tokenise_ignore_comments() {
     let input = "
 function // This is a comment
+         // this is another line of comment
          global
 endfunction";
     let expected = vec![
