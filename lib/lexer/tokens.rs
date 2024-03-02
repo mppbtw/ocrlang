@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
-/// The token emmitted by the lexer. It is worth noting that this is cheap to copy and move around
-/// as it only contains references to data stored in the input string.
+/// The token emmitted by the lexer. It is worth noting that this is cheap to
+/// copy and move around as it only contains references to data stored in the
+/// input string.
 #[derive(Hash, PartialEq, Eq, Debug, Default, Clone, Copy)]
 pub enum Token<'a> {
     Identifier(&'a str),
@@ -27,9 +28,10 @@ pub enum Token<'a> {
     Caret,
     Colon,
 
-    /// This is just the literal string of the number, the parser will parse the number itself
-    /// later; this is done to allow for cheap copying without the tokens actually holding any data
-    /// just references to the input string
+    /// This is just the literal string of the number, the parser will parse the
+    /// number itself later; this is done to allow for cheap copying without
+    /// the tokens actually holding any data just references to the input
+    /// string
     NumberLiteral(&'a str),
     Comma,
     Eof,
