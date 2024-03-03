@@ -1,5 +1,4 @@
-use std::cell::RefCell;
-
+use super::ast::Identifier;
 use super::ast::Program;
 use super::ast::Statement;
 use crate::lexer::Lexer;
@@ -9,6 +8,7 @@ use crate::lexer::Token;
 pub enum ParserError {
     InvalidNumberLiteral,
     TooLargeInteger,
+    UnexpectedToken,
 }
 impl From<LexerError> for ParserError {
     fn from(value: LexerError) -> Self {
@@ -23,14 +23,21 @@ impl From<LexerError> for ParserError {
 pub struct Parser<'a> {
     lexer:    Lexer<'a>,
     tok:      Token<'a>,
-    read_tok: Token<'a>,
+    peek_tok: Token<'a>,
 }
 
 impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<Program, ParserError> {
         let mut prog = Program::default();
         while matches!(self.tok, Token::Eof) {
-            if matches!(self.tok, Token::Identifier(_)) {
+            if matches!(self.tok, Token::Global)
+                || (matches!(self.tok, Token::Identifier(_))
+                    && matches!(self.peek_tok, Token::Equals))
+            // We have to check for equals
+            // because an identifier on its own
+            // could be a function call or
+            // something
+            {
                 prog.statements.push(self.parse_assign_statement()?);
             }
             self.next_token()?;
@@ -39,12 +46,34 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_assign_statement(&mut self) -> Result<Statement<'a>, ParserError> {
-        Ok(Statement::default())
+        let token = self.tok.clone();
+        let ident;
+        match self.tok {
+            Token::Global => {
+                self.next_token()?;
+                match self.tok {
+                    Token::Identifier(_) => ident = self.tok,
+                    _ => return Err(ParserError::UnexpectedToken),
+                };
+            }
+            Token::Identifier(_) => ident = self.tok,
+            _ => return Err(ParserError::UnexpectedToken),
+        }
+
+        if !matches!(self.tok, Token::Equals) {
+            return Err(ParserError::UnexpectedToken);
+        }
+        self.next_token()?;
+        Ok(Statement::Assign {
+            token,
+            ident: Identifier::new(ident),
+            value: None,
+        })
     }
 
     pub fn next_token(&mut self) -> Result<(), LexerError> {
-        self.tok = self.read_tok;
-        self.read_tok = self.lexer.next_token()?;
+        self.tok = self.peek_tok;
+        self.peek_tok = self.lexer.next_token()?;
         Ok(())
     }
 
@@ -55,7 +84,7 @@ impl<'a> Parser<'a> {
         let mut p = Self {
             lexer:    input,
             tok:      Token::default(),
-            read_tok: Token::default(),
+            peek_tok: Token::default(),
         };
         // Read 2 tokens, so tok and read_tok are both set properly
         p.next_token()?;

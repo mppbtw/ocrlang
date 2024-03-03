@@ -2,26 +2,33 @@ use std::fmt;
 
 use crate::lexer::Token;
 
-#[derive(Debug, Clone)]
-pub struct Expression {}
+pub trait Expression {}
 
 #[derive(Default)]
 pub struct Program<'a> {
     pub statements: Vec<Statement<'a>>,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default)]
 pub enum Statement<'a> {
     Assign {
         token: Token<'a>,
-        ident: Identifier,
-        value: Expression,
+        ident: Identifier<'a>,
+        value: Option<Box<dyn Expression>>,
     },
     #[default]
     Empty,
 }
 
 #[derive(Debug, Clone)]
-pub struct Identifier {}
+pub struct Identifier<'a> {
+    /// Token::Ident
+    token: Token<'a>,
+}
+impl<'a> Identifier<'a> {
+    pub fn new(token: Token<'a>) -> Self {
+        Self { token }
+    }
+}
 
-pub struct AssignStatementData {}
+impl Expression for Identifier<'_> {}
