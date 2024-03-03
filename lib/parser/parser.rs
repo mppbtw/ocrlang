@@ -53,9 +53,11 @@ impl<'a> Parser<'a> {
     fn parse_assign_statement(&mut self) -> Result<Statement<'a>, ParserError> {
         let token = self.tok.clone();
         let ident;
+        let mut global = false;
         match self.tok {
             Token::Global => {
                 self.next_token()?;
+                global = true;
                 match self.tok {
                     Token::Identifier(_) => ident = self.tok,
                     _ => return Err(ParserError::UnexpectedToken),
@@ -78,6 +80,7 @@ impl<'a> Parser<'a> {
 
         Ok(Statement::Assign {
             token,
+            global,
             ident: Identifier::new(ident),
             value: None,
         })

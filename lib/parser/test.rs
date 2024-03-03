@@ -5,7 +5,7 @@ use crate::parser::ast::Statement;
 #[test]
 fn test_parse_var_assign_statement() {
     let input = "a = 1
-        bb = 22
+        global bb = 22
         ccc = 333";
     let mut parser = Parser::new(Lexer::new(input)).unwrap();
     let prog = parser.parse().unwrap();
@@ -13,19 +13,22 @@ fn test_parse_var_assign_statement() {
 
     let a = &prog.statements[0];
     assert!(matches!(a, Statement::Assign { .. }));
-    if let Statement::Assign { ident, .. } = a {
+    if let Statement::Assign { ident, global, .. } = a {
         assert_eq!(ident.get_ident(), "a");
+        assert!(!global);
     }
 
     let b = &prog.statements[1];
     assert!(matches!(b, Statement::Assign { .. }));
-    if let Statement::Assign { ident, .. } = b {
+    if let Statement::Assign { ident, global, .. } = b {
         assert_eq!(ident.get_ident(), "bb");
+        assert!(global);
     }
 
     let c = &prog.statements[2];
     assert!(matches!(c, Statement::Assign { .. }));
-    if let Statement::Assign { ident, .. } = c {
+    if let Statement::Assign { ident, global, .. } = c {
         assert_eq!(ident.get_ident(), "ccc");
+        assert!(!global);
     }
 }

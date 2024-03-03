@@ -22,6 +22,7 @@ pub enum Statement<'a> {
     Assign {
         token: Token<'a>,
         ident: Identifier<'a>,
+        global: bool,
         value: Option<Box<dyn Expression>>,
     },
     #[default]
