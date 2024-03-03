@@ -5,9 +5,12 @@ use crate::lexer::Lexer;
 use crate::lexer::LexerError;
 use crate::lexer::Token;
 
+#[derive(Debug, Clone, Copy, Default)]
 pub enum ParserError {
     InvalidNumberLiteral,
     TooLargeInteger,
+
+    #[default]
     UnexpectedToken,
 }
 impl From<LexerError> for ParserError {
@@ -29,14 +32,15 @@ pub struct Parser<'a> {
 impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<Program, ParserError> {
         let mut prog = Program::default();
-        while matches!(self.tok, Token::Eof) {
+        while !matches!(self.tok, Token::Eof) {
             if matches!(self.tok, Token::Global)
+
+                // We have to check for equals
+                // because an identifier on its own
+                // could be a function call or
+                // something
                 || (matches!(self.tok, Token::Identifier(_))
                     && matches!(self.peek_tok, Token::Equals))
-            // We have to check for equals
-            // because an identifier on its own
-            // could be a function call or
-            // something
             {
                 prog.statements.push(self.parse_assign_statement()?);
             }
@@ -59,10 +63,18 @@ impl<'a> Parser<'a> {
             Token::Identifier(_) => ident = self.tok,
             _ => return Err(ParserError::UnexpectedToken),
         }
+        self.next_token()?;
 
         if !matches!(self.tok, Token::Equals) {
             return Err(ParserError::UnexpectedToken);
         }
+
+        // TODO: This is ignoring the expression until the next line, I should get round
+        // to writing a parser once the expressions can be moddled decently
+        while !(matches!(self.tok, Token::Newline) || matches!(self.tok, Token::Eof)) {
+            self.next_token()?;
+        }
+
         self.next_token()?;
         Ok(Statement::Assign {
             token,
