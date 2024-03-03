@@ -33,7 +33,6 @@ impl<'a> Lexer<'a> {
             self.skip_to_end_of_line();
         }
 
-        dbg!(self.pos, self.read_pos, self.ch as char);
         let tok: Token = match self.ch {
             b'+' => Token::Plus,
             b'-' => Token::Minus,

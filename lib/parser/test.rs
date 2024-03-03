@@ -17,13 +17,13 @@ fn test_parse_var_assign_statement() {
         assert_eq!(ident.get_ident(), "a");
     }
 
-    let b = &prog.statements[0];
+    let b = &prog.statements[1];
     assert!(matches!(b, Statement::Assign { .. }));
     if let Statement::Assign { ident, .. } = b {
         assert_eq!(ident.get_ident(), "bb");
     }
 
-    let c = &prog.statements[0];
+    let c = &prog.statements[2];
     assert!(matches!(c, Statement::Assign { .. }));
     if let Statement::Assign { ident, .. } = c {
         assert_eq!(ident.get_ident(), "ccc");

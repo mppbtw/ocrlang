@@ -33,6 +33,7 @@ impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<Program, ParserError> {
         let mut prog = Program::default();
         while !matches!(self.tok, Token::Eof) {
+            dbg!(self.tok);
             if matches!(self.tok, Token::Global)
 
                 // We have to check for equals
@@ -75,7 +76,6 @@ impl<'a> Parser<'a> {
             self.next_token()?;
         }
 
-        self.next_token()?;
         Ok(Statement::Assign {
             token,
             ident: Identifier::new(ident),
