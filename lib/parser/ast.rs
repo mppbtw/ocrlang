@@ -20,9 +20,13 @@ pub struct Program<'a> {
 #[derive(Default, Debug)]
 pub enum Statement<'a> {
     Assign {
-        token: Token<'a>,
-        ident: Identifier<'a>,
+        token:  Token<'a>,
+        ident:  Identifier<'a>,
         global: bool,
+        value:  Option<Box<dyn Expression>>,
+    },
+    Return {
+        token: Token<'a>,
         value: Option<Box<dyn Expression>>,
     },
     #[default]

@@ -33,21 +33,27 @@ impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<Program, ParserError> {
         let mut prog = Program::default();
         while !matches!(self.tok, Token::Eof) {
-            dbg!(self.tok);
+            // Variable assign statements
             if matches!(self.tok, Token::Global)
-
-                // We have to check for equals
-                // because an identifier on its own
-                // could be a function call or
-                // something
                 || (matches!(self.tok, Token::Identifier(_))
                     && matches!(self.peek_tok, Token::Equals))
             {
                 prog.statements.push(self.parse_assign_statement()?);
+            } else if matches!(self.tok, Token::Return) {
+                prog.statements.push(self.parse_return_statement()?);
             }
             self.next_token()?;
         }
         Ok(prog)
+    }
+
+    fn parse_return_statement(&mut self) -> Result<Statement<'a>, ParserError> {
+        let token = self.tok.clone();
+        while !(matches!(self.tok, Token::Newline) || matches!(self.tok, Token::Eof)) {
+            self.next_token()?;
+        }
+
+        Ok(Statement::Return { token, value: None })
     }
 
     fn parse_assign_statement(&mut self) -> Result<Statement<'a>, ParserError> {
@@ -72,8 +78,6 @@ impl<'a> Parser<'a> {
             return Err(ParserError::UnexpectedToken);
         }
 
-        // TODO: This is ignoring the expression until the next line, I should get round
-        // to writing a parser once the expressions can be moddled decently
         while !(matches!(self.tok, Token::Newline) || matches!(self.tok, Token::Eof)) {
             self.next_token()?;
         }

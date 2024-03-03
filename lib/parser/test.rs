@@ -32,3 +32,16 @@ fn test_parse_var_assign_statement() {
         assert!(!global);
     }
 }
+
+#[test]
+fn test_parse_return_statement() {
+    let input = "return a+b
+        return c+d";
+    let mut parser = Parser::new(Lexer::new(input)).unwrap();
+    let prog = parser.parse().unwrap();
+    assert_eq!(prog.statements.len(), 2);
+
+    for s in prog.statements {
+        assert!(matches!(s, Statement::Return { .. }));
+    }
+}
