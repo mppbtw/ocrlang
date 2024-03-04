@@ -4,5 +4,5 @@ mod expressions;
 #[cfg(test)]
 mod test;
 
-//pub use ast::*;
-//pub use expressions::*;
+pub use ast::*;
+pub use expressions::*;
