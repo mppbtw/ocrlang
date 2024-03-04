@@ -1,4 +1,3 @@
-use super::ast::Expression;
 use super::ast::Identifier;
 use super::ast::Program;
 use super::ast::Statement;
@@ -86,7 +85,7 @@ impl<'a> Parser<'a> {
         Ok(Statement::Assign {
             token,
             global,
-            ident: Identifier {token: ident},
+            ident: Identifier { token: ident },
             value: None,
         })
     }
