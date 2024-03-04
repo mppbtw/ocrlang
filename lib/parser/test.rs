@@ -1,6 +1,6 @@
+use super::ast::Statement;
 use super::Parser;
 use crate::lexer::Lexer;
-use super::ast::Statement;
 
 #[test]
 fn test_parse_var_assign_statement() {

@@ -1,19 +1,10 @@
-use std::fmt;
-use std::fmt::Display;
+use std::fmt::Debug;
 
 use super::ast::AstNode;
+use super::ast::PrettyPrint;
 use crate::lexer::Token;
 
-#[derive(Debug, Clone)]
-pub enum Expression<'a> {
-    Identifier(Identifier<'a>),
-}
-impl Display for Expression<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "")
-    }
-}
-impl AstNode for Expression<'_> {}
+pub trait Expression: AstNode {}
 
 #[derive(Debug, Clone)]
 pub struct Identifier<'a> {
@@ -28,9 +19,10 @@ impl Identifier<'_> {
         }
     }
 }
-impl AstNode for Identifier<'_> {}
-impl Display for Identifier<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "An identifier: {}", self.get_ident())
+impl PrettyPrint for Identifier<'_> {
+    fn pretty_print(&self) -> String {
+        self.get_ident().to_owned()
     }
 }
+impl AstNode for Identifier<'_> {}
+impl Expression for Identifier<'_> {}
