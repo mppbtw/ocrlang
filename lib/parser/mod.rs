@@ -5,5 +5,3 @@ pub use parser::Parser;
 
 #[cfg(test)]
 mod test;
-
-mod ast;

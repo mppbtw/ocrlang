@@ -1,4 +1,4 @@
-use super::ast::Statement;
+use crate::syntax::Statement;
 use super::Parser;
 use crate::lexer::Lexer;
 

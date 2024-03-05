@@ -1,6 +1,6 @@
-use super::ast::Identifier;
-use super::ast::Program;
-use super::ast::Statement;
+use crate::syntax::Identifier;
+use crate::syntax::Statement;
+use crate::syntax::Program;
 use crate::lexer::Lexer;
 use crate::lexer::LexerError;
 use crate::lexer::Token;

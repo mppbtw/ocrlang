@@ -1,7 +1,7 @@
 use std::fmt::Debug;
-
 use super::expressions::Expression;
 use super::expressions::Identifier;
+
 use crate::lexer::Token;
 
 /// Meta-trait for all of the stuff needed in AST statements/expressions
