@@ -1,12 +1,14 @@
-use crate::syntax::Identifier;
-use crate::syntax::Statement;
-use crate::syntax::Program;
 use crate::lexer::Lexer;
 use crate::lexer::LexerError;
 use crate::lexer::Token;
+use crate::syntax::Identifier;
+use crate::syntax::IntegerLiteralExpression;
+use crate::syntax::Program;
+use crate::syntax::Statement;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub enum ParserError {
+    UnterminatedStringLiteral,
     InvalidNumberLiteral,
     TooLargeInteger,
 
@@ -16,8 +18,7 @@ pub enum ParserError {
 impl From<LexerError> for ParserError {
     fn from(value: LexerError) -> Self {
         match value {
-            LexerError::TooLargeInteger => ParserError::TooLargeInteger,
-            LexerError::InvalidNumberLiteral => ParserError::InvalidNumberLiteral,
+            LexerError::UnterminatedStringLiteral => Self::UnterminatedStringLiteral,
         }
     }
 }
@@ -87,6 +88,21 @@ impl<'a> Parser<'a> {
             global,
             ident: Identifier { token: ident },
             value: None,
+        })
+    }
+
+    fn parse_integer_literal_expression(&mut self) -> Result<IntegerLiteralExpression, ParserError> {
+        let token = self.tok;
+        let value = match token {
+            Token::NumberLiteral(n) => match n.parse() {
+                Ok(i) => i,
+                _ => return Err(ParserError::UnexpectedToken)
+            },
+            _ => return Err(ParserError::UnexpectedToken)
+        };
+        Ok(IntegerLiteralExpression {
+            token,
+            value,
         })
     }
 

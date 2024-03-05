@@ -3,8 +3,7 @@ use crate::lexer::Token;
 
 #[derive(Debug, Clone)]
 pub enum LexerError {
-    InvalidNumberLiteral,
-    TooLargeInteger,
+    UnterminatedStringLiteral,
 }
 
 #[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]

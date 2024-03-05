@@ -1,6 +1,6 @@
-use crate::syntax::Statement;
 use super::Parser;
 use crate::lexer::Lexer;
+use crate::syntax::Statement;
 
 #[test]
 fn test_parse_var_assign_statement() {
@@ -44,4 +44,11 @@ fn test_parse_return_statement() {
     for s in prog.statements {
         assert!(matches!(s, Statement::Return { .. }));
     }
+}
+
+#[test]
+fn test_parse_integer_literal_expression() {
+    let input = "12345 6789 0001";
+    let mut parser = Parser::new(Lexer::new(input)).unwrap();
+    let prog = parser.parse().unwrap();
 }

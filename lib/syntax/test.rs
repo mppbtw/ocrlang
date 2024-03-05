@@ -1,6 +1,6 @@
-use crate::lexer::Token;
 use super::ast::Identifier;
 use super::ast::PrettyPrint;
+use crate::lexer::Token;
 
 #[test]
 fn test_pretty_print_identifiers() {

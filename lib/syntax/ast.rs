@@ -53,3 +53,43 @@ impl PrettyPrint for Identifier<'_> {
 }
 impl AstNode for Identifier<'_> {}
 impl Expression for Identifier<'_> {}
+
+#[derive(Debug, Clone)]
+pub enum InfixOperator {
+    Plus,
+    Minus,
+    Divide,
+    Div,
+    Mod,
+    Multiply,
+    FunctionCall,
+}
+impl TryFrom<Token<'_>> for InfixOperator {
+    type Error = ();
+
+    fn try_from(value: Token) -> Result<Self, Self::Error> {
+        match value {
+            Token::Plus => Ok(Self::Plus),
+            Token::Minus => Ok(Self::Minus),
+            Token::FSlash => Ok(Self::Divide),
+            Token::Div => Ok(Self::Div),
+            Token::Mod => Ok(Self::Mod),
+            Token::Asterisk => Ok(Self::Multiply),
+            _ => Err(()),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct InfixExpression<'a> {
+    pub token:    Token<'a>,
+    pub operator: InfixOperator,
+    pub left:     Box<dyn Expression>,
+    pub right:    Box<dyn Expression>,
+}
+
+#[derive(Debug)]
+pub struct IntegerLiteralExpression<'a> {
+    pub token: Token<'a>,
+    pub value: i128,
+}
