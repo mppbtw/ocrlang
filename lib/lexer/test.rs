@@ -165,3 +165,34 @@ endfunction";
 fn test_tokenise_empty_input() {
     assert!(Token::Eof == Lexer::new("").next_token().unwrap());
 }
+
+#[test]
+fn test_tokenise_string_literal() {
+    dbg!(r#"""#);
+    let input = r#""a" "bb"
+    = not or "ccc""dddd"
+        "eeeee""#;
+    let expected = vec![
+        Token::StringLiteral("a"),
+        Token::StringLiteral("bb"),
+        Token::Equals,
+        Token::Not,
+        Token::Or,
+        Token::StringLiteral("ccc"),
+        Token::StringLiteral("dddd"),
+        Token::StringLiteral("eeeee"),
+        Token::Eof,
+    ];
+
+    let mut i = 0;
+    let mut lexer = Lexer::new(input);
+    loop {
+        let expected_token = &expected[i];
+        let tok = lexer.next_token().unwrap();
+        assert_eq!(tok, *expected_token);
+        if matches!(tok, Token::Eof) {
+            break;
+        }
+        i += 1;
+    }
+}
