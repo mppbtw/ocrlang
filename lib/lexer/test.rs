@@ -168,18 +168,20 @@ fn test_tokenise_empty_input() {
 
 #[test]
 fn test_tokenise_string_literal() {
-    dbg!(r#"""#);
     let input = r#""a" "bb"
-    = not or "ccc""dddd"
+    = NOT OR "ccc""dddd"
         "eeeee""#;
+
     let expected = vec![
         Token::StringLiteral("a"),
         Token::StringLiteral("bb"),
+        Token::Newline,
         Token::Equals,
         Token::Not,
         Token::Or,
         Token::StringLiteral("ccc"),
         Token::StringLiteral("dddd"),
+        Token::Newline,
         Token::StringLiteral("eeeee"),
         Token::Eof,
     ];
