@@ -3,8 +3,10 @@ use crate::lexer::LexerError;
 use crate::lexer::Token;
 use crate::syntax::Identifier;
 use crate::syntax::IntegerLiteralExpression;
+use crate::syntax::PlaceholderExpression;
 use crate::syntax::Program;
-use crate::syntax::Return;
+use crate::syntax::ReturnStatement;
+use crate::syntax::AssignStatement;
 use crate::syntax::Statement;
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -29,36 +31,38 @@ pub struct Parser<'a> {
     lexer:    Lexer<'a>,
     tok:      Token<'a>,
     peek_tok: Token<'a>,
+    prog:     Program<'a>,
 }
 
 impl<'a> Parser<'a> {
-    pub fn parse(&mut self) -> Result<Program, ParserError> {
-        let mut prog = Program::default();
+    pub fn parse(&mut self) -> Result<&'a Program, ParserError> {
         while !matches!(self.tok, Token::Eof) {
             // Variable assign statements
             if matches!(self.tok, Token::Global)
                 || (matches!(self.tok, Token::Identifier(_))
                     && matches!(self.peek_tok, Token::Equals))
             {
-                prog.statements.push(self.parse_assign_statement()?);
+                //let assign_stmt = self.parse_assign_statement()?;
+                //self.prog.statements.push(assign_stmt);
             } else if matches!(self.tok, Token::Return) {
-                prog.statements.push(self.parse_return_statement()?);
+                let return_stmt = self.parse_return_statement()?;
+                self.prog.statements.push(return_stmt);
             }
             self.next_token()?;
         }
-        Ok(prog)
+        Ok(&self.prog)
     }
 
-    fn parse_return_statement(&mut self) -> Result<ReturnStatement, ParserError> {
+    fn parse_return_statement(&mut self) -> Result<Box<dyn Statement + 'a>, ParserError> {
         let token = self.tok.clone();
         while !(matches!(self.tok, Token::Newline) || matches!(self.tok, Token::Eof)) {
             self.next_token()?;
         }
 
-        Ok(ReturnStatement { token, value: None })
+        Ok(Box::new(ReturnStatement { token, value: None }))
     }
 
-    fn parse_assign_statement(&mut self) -> Result<AssignStatement, ParserError> {
+    fn parse_assign_statement(&mut self) -> Result<AssignStatement<'a>, ParserError> {
         let token = self.tok.clone();
         let ident;
         let mut global = false;
@@ -88,7 +92,7 @@ impl<'a> Parser<'a> {
             token,
             global,
             ident: Identifier { token: ident },
-            value: None,
+            value: Box::new(PlaceholderExpression{}),
         })
     }
 
@@ -120,6 +124,7 @@ impl<'a> Parser<'a> {
             lexer:    input,
             tok:      Token::default(),
             peek_tok: Token::default(),
+            prog: Program::default(),
         };
         // Read 2 tokens, so tok and read_tok are both set properly
         p.next_token()?;

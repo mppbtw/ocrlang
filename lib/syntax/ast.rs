@@ -10,9 +10,9 @@ pub trait PrettyPrint {
     fn pretty_print(&self) -> String;
 }
 
-#[derive(Default)]
-pub struct Program {
-    pub statements: Vec<Box<dyn Statement>>,
+#[derive(Default, Debug)]
+pub struct Program<'a> {
+    pub statements: Vec<Box<dyn Statement + 'a>>,
 }
 
 pub trait Statement: AstNode {}
@@ -39,7 +39,7 @@ pub struct ReturnStatement<'a> {
 }
 impl PrettyPrint for ReturnStatement<'_> {
     fn pretty_print(&self) -> String {
-        match self.value {
+        match &self.value {
             Some(v) => "return ".to_owned() + &v.pretty_print(),
             None => "return".to_owned(),
         }
@@ -128,3 +128,15 @@ pub struct IntegerLiteralExpression<'a> {
     pub token: Token<'a>,
     pub value: i128,
 }
+
+#[derive(Debug)]
+pub struct PlaceholderExpression {
+
+}
+impl PrettyPrint for PlaceholderExpression{
+    fn pretty_print(&self) -> String {
+        "<--PLACEHOLDEREXPRESSION-->".to_owned()
+    }
+}
+impl AstNode for PlaceholderExpression{}
+impl Expression for PlaceholderExpression{}
