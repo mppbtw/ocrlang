@@ -46,20 +46,20 @@ impl<'a> Parser<'a> {
                 //self.prog.statements.push(assign_stmt);
             } else if matches!(self.tok, Token::Return) {
                 let return_stmt = self.parse_return_statement()?;
-                self.prog.statements.push(return_stmt);
+                self.prog.statements.push(Box::new(return_stmt));
             }
             self.next_token()?;
         }
         Ok(&self.prog)
     }
 
-    fn parse_return_statement(&mut self) -> Result<Box<dyn Statement + 'a>, ParserError> {
+    fn parse_return_statement(&mut self) -> Result<ReturnStatement<'a>, ParserError> {
         let token = self.tok.clone();
         while !(matches!(self.tok, Token::Newline) || matches!(self.tok, Token::Eof)) {
             self.next_token()?;
         }
 
-        Ok(Box::new(ReturnStatement { token, value: None }))
+        Ok(ReturnStatement { token, value: None })
     }
 
     fn parse_assign_statement(&mut self) -> Result<AssignStatement<'a>, ParserError> {
