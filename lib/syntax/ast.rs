@@ -11,27 +11,62 @@ pub trait PrettyPrint {
 }
 
 #[derive(Default)]
-pub struct Program<'a> {
-    pub statements: Vec<Statement<'a>>,
+pub struct Program {
+    pub statements: Vec<Box<dyn Statement>>,
 }
 
-#[derive(Default, Debug)]
-pub enum Statement<'a> {
-    Assign {
-        token:  Token<'a>,
-        ident:  Identifier<'a>,
-        global: bool,
-        value:  Option<Box<dyn Expression>>,
-    },
-    Return {
-        token: Token<'a>,
-        value: Option<Box<dyn Expression>>,
-    },
-    #[default]
-    Empty,
+pub trait Statement: AstNode {}
+
+#[derive(Debug)]
+pub struct AssignStatement<'a> {
+    pub token:  Token<'a>,
+    pub ident:  Identifier<'a>,
+    pub global: bool,
+    pub value:  Box<dyn Expression>,
 }
+impl PrettyPrint for AssignStatement<'_> {
+    fn pretty_print(&self) -> String {
+        (if self.global { "global " } else { "" }.to_owned() + &self.ident.get_ident() + " = " + &self.value.pretty_print()).to_owned()
+    }
+}
+impl AstNode for AssignStatement<'_> {}
+impl Statement for AssignStatement<'_> {}
+
+#[derive(Debug)]
+pub struct ReturnStatement<'a> {
+    pub token: Token<'a>,
+    pub value: Option<Box<dyn Expression>>,
+}
+impl PrettyPrint for ReturnStatement<'_> {
+    fn pretty_print(&self) -> String {
+        match self.value {
+            Some(v) => "return ".to_owned() + &v.pretty_print(),
+            None => "return".to_owned(),
+        }
+        .to_owned()
+    }
+}
+impl AstNode for ReturnStatement<'_> {}
+impl Statement for ReturnStatement<'_> {}
+
+#[derive(Debug)]
+pub struct EmptyStatement {}
+impl PrettyPrint for EmptyStatement {
+    fn pretty_print(&self) -> String {
+        String::new()
+    }
+}
+impl AstNode for EmptyStatement {}
+impl Statement for EmptyStatement {}
 
 pub trait Expression: AstNode {}
+impl Default for Box<dyn Expression> {
+    fn default() -> Self {
+        Box::new(Identifier {
+            token: Token::Identifier("lol")
+        })
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Identifier<'a> {

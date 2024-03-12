@@ -78,9 +78,7 @@ impl<'a> Lexer<'a> {
                     Token::Illegal
                 }
             }
-            b'"' => {
-                self.read_string_literal()?
-            }
+            b'"' => self.read_string_literal()?,
             _ => {
                 if self.ch.is_ascii_alphabetic() {
                     lookup_keyword(self.read_identifier())

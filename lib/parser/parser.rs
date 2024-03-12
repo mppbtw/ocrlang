@@ -4,6 +4,7 @@ use crate::lexer::Token;
 use crate::syntax::Identifier;
 use crate::syntax::IntegerLiteralExpression;
 use crate::syntax::Program;
+use crate::syntax::Return;
 use crate::syntax::Statement;
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -48,16 +49,16 @@ impl<'a> Parser<'a> {
         Ok(prog)
     }
 
-    fn parse_return_statement(&mut self) -> Result<Statement<'a>, ParserError> {
+    fn parse_return_statement(&mut self) -> Result<ReturnStatement, ParserError> {
         let token = self.tok.clone();
         while !(matches!(self.tok, Token::Newline) || matches!(self.tok, Token::Eof)) {
             self.next_token()?;
         }
 
-        Ok(Statement::Return { token, value: None })
+        Ok(ReturnStatement { token, value: None })
     }
 
-    fn parse_assign_statement(&mut self) -> Result<Statement<'a>, ParserError> {
+    fn parse_assign_statement(&mut self) -> Result<AssignStatement, ParserError> {
         let token = self.tok.clone();
         let ident;
         let mut global = false;
@@ -83,7 +84,7 @@ impl<'a> Parser<'a> {
             self.next_token()?;
         }
 
-        Ok(Statement::Assign {
+        Ok(AssignStatement {
             token,
             global,
             ident: Identifier { token: ident },
@@ -91,19 +92,18 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_integer_literal_expression(&mut self) -> Result<IntegerLiteralExpression, ParserError> {
+    fn parse_integer_literal_expression(
+        &mut self,
+    ) -> Result<IntegerLiteralExpression, ParserError> {
         let token = self.tok;
         let value = match token {
             Token::NumberLiteral(n) => match n.parse() {
                 Ok(i) => i,
-                _ => return Err(ParserError::UnexpectedToken)
+                _ => return Err(ParserError::UnexpectedToken),
             },
-            _ => return Err(ParserError::UnexpectedToken)
+            _ => return Err(ParserError::UnexpectedToken),
         };
-        Ok(IntegerLiteralExpression {
-            token,
-            value,
-        })
+        Ok(IntegerLiteralExpression { token, value })
     }
 
     pub fn next_token(&mut self) -> Result<(), LexerError> {
