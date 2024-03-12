@@ -42,8 +42,8 @@ impl<'a> Parser<'a> {
                 || (matches!(self.tok, Token::Identifier(_))
                     && matches!(self.peek_tok, Token::Equals))
             {
-                //let assign_stmt = self.parse_assign_statement()?;
-                //self.prog.statements.push(assign_stmt);
+                let assign_stmt = self.parse_assign_statement()?;
+                self.prog.statements.push(Box::new(assign_stmt));
             } else if matches!(self.tok, Token::Return) {
                 let return_stmt = self.parse_return_statement()?;
                 self.prog.statements.push(Box::new(return_stmt));
