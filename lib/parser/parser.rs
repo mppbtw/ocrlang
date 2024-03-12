@@ -1,12 +1,12 @@
 use crate::lexer::Lexer;
 use crate::lexer::LexerError;
 use crate::lexer::Token;
+use crate::syntax::AssignStatement;
 use crate::syntax::Identifier;
 use crate::syntax::IntegerLiteralExpression;
 use crate::syntax::PlaceholderExpression;
 use crate::syntax::Program;
 use crate::syntax::ReturnStatement;
-use crate::syntax::AssignStatement;
 use crate::syntax::Statement;
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -92,13 +92,13 @@ impl<'a> Parser<'a> {
             token,
             global,
             ident: Identifier { token: ident },
-            value: Box::new(PlaceholderExpression{}),
+            value: Box::new(PlaceholderExpression {}),
         })
     }
 
     fn parse_integer_literal_expression(
         &mut self,
-    ) -> Result<IntegerLiteralExpression, ParserError> {
+    ) -> Result<IntegerLiteralExpression<'a>, ParserError> {
         let token = self.tok;
         let value = match token {
             Token::NumberLiteral(n) => match n.parse() {
@@ -124,7 +124,7 @@ impl<'a> Parser<'a> {
             lexer:    input,
             tok:      Token::default(),
             peek_tok: Token::default(),
-            prog: Program::default(),
+            prog:     Program::default(),
         };
         // Read 2 tokens, so tok and read_tok are both set properly
         p.next_token()?;

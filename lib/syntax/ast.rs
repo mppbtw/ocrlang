@@ -26,7 +26,11 @@ pub struct AssignStatement<'a> {
 }
 impl PrettyPrint for AssignStatement<'_> {
     fn pretty_print(&self) -> String {
-        (if self.global { "global " } else { "" }.to_owned() + &self.ident.get_ident() + " = " + &self.value.pretty_print()).to_owned()
+        (if self.global { "global " } else { "" }.to_owned()
+            + &self.ident.get_ident()
+            + " = "
+            + &self.value.pretty_print())
+            .to_owned()
     }
 }
 impl AstNode for AssignStatement<'_> {}
@@ -63,7 +67,7 @@ pub trait Expression: AstNode {}
 impl Default for Box<dyn Expression> {
     fn default() -> Self {
         Box::new(Identifier {
-            token: Token::Identifier("lol")
+            token: Token::Identifier("lol"),
         })
     }
 }
@@ -130,13 +134,11 @@ pub struct IntegerLiteralExpression<'a> {
 }
 
 #[derive(Debug)]
-pub struct PlaceholderExpression {
-
-}
-impl PrettyPrint for PlaceholderExpression{
+pub struct PlaceholderExpression {}
+impl PrettyPrint for PlaceholderExpression {
     fn pretty_print(&self) -> String {
         "<--PLACEHOLDEREXPRESSION-->".to_owned()
     }
 }
-impl AstNode for PlaceholderExpression{}
-impl Expression for PlaceholderExpression{}
+impl AstNode for PlaceholderExpression {}
+impl Expression for PlaceholderExpression {}
