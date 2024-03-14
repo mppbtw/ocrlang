@@ -10,7 +10,14 @@ pub trait PrettyPrint {
     fn pretty_print(&self) -> String;
 }
 
-pub trait Statement: AstNode {}
+pub trait Statement: AstNode {
+    fn get_type(&self) -> StatementType;
+}
+
+pub enum StatementType<'a> {
+    Assign(&'a AssignStatement<'a>),
+    Empty,
+}
 
 #[derive(Debug)]
 pub struct AssignStatement<'a> {
@@ -29,7 +36,11 @@ impl PrettyPrint for AssignStatement<'_> {
     }
 }
 impl AstNode for AssignStatement<'_> {}
-impl Statement for AssignStatement<'_> {}
+impl Statement for AssignStatement<'_> {
+    fn get_type(&self) -> StatementType {
+        StatementType::Assign(&self)
+    }
+}
 
 #[derive(Debug)]
 pub struct ReturnStatement<'a> {
@@ -46,7 +57,11 @@ impl PrettyPrint for ReturnStatement<'_> {
     }
 }
 impl AstNode for ReturnStatement<'_> {}
-impl Statement for ReturnStatement<'_> {}
+impl Statement for ReturnStatement<'_> {
+    fn get_type(&self) -> StatementType {
+        StatementType::Empty
+    }
+}
 
 #[derive(Debug)]
 pub struct EmptyStatement {}
@@ -56,7 +71,11 @@ impl PrettyPrint for EmptyStatement {
     }
 }
 impl AstNode for EmptyStatement {}
-impl Statement for EmptyStatement {}
+impl Statement for EmptyStatement {
+    fn get_type(&self) -> StatementType {
+        StatementType::Empty
+    }
+}
 
 pub trait Expression: AstNode {}
 impl Default for Box<dyn Expression> {
