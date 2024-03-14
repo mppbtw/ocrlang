@@ -60,6 +60,3 @@ fn test_parse_return_statement() {
         assert!(stmt.value.is_none())
     }
 }
-
-#[test]
-fn test_parse_integer_literal_expression() {}
