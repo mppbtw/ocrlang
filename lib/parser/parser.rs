@@ -5,7 +5,6 @@ use crate::syntax::AssignStatement;
 use crate::syntax::Identifier;
 use crate::syntax::IntegerLiteralExpression;
 use crate::syntax::PlaceholderExpression;
-use crate::syntax::Program;
 use crate::syntax::ReturnStatement;
 use crate::syntax::Statement;
 
@@ -25,6 +24,12 @@ impl From<LexerError> for ParserError {
         }
     }
 }
+
+#[derive(Default, Debug)]
+pub struct Program<'a> {
+    pub statements: Vec<Box<dyn Statement + 'a>>,
+}
+
 
 #[derive(Default, Debug)]
 pub struct Parser<'a> {

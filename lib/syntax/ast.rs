@@ -12,10 +12,18 @@ pub trait PrettyPrint {
 
 #[derive(Default, Debug)]
 pub struct Program<'a> {
-    pub statements: Vec<Box<dyn Statement + 'a>>,
+    pub statements: Vec<Box<dyn Statement<'a> + 'a>>,
 }
 
-pub trait Statement: AstNode {}
+pub trait Statement<'a>: AstNode {
+    fn get_statement_type(&self) -> StatementType<'a,'a>;
+}
+
+pub enum StatementType<'a, 'b> {
+    AssignStatement(&'a AssignStatement<'b>),
+    ReturnStatement(&'a ReturnStatement<'b>),
+    EmptyStatement,
+}
 
 #[derive(Debug)]
 pub struct AssignStatement<'a> {
@@ -34,7 +42,11 @@ impl PrettyPrint for AssignStatement<'_> {
     }
 }
 impl AstNode for AssignStatement<'_> {}
-impl Statement for AssignStatement<'_> {}
+impl Statement for AssignStatement<'_> {
+    fn get_statement_type(&self) -> StatementType {
+        StatementType::AssignStatement(&self)
+    }
+}
 
 #[derive(Debug)]
 pub struct ReturnStatement<'a> {
@@ -51,7 +63,11 @@ impl PrettyPrint for ReturnStatement<'_> {
     }
 }
 impl AstNode for ReturnStatement<'_> {}
-impl Statement for ReturnStatement<'_> {}
+impl Statement for ReturnStatement<'_> {
+    fn get_statement_type(&self) -> StatementType {
+        StatementType::ReturnStatement(&self)
+    }
+}
 
 #[derive(Debug)]
 pub struct EmptyStatement {}
@@ -61,7 +77,11 @@ impl PrettyPrint for EmptyStatement {
     }
 }
 impl AstNode for EmptyStatement {}
-impl Statement for EmptyStatement {}
+impl Statement for EmptyStatement {
+    fn get_statement_type(&self) -> StatementType {
+        StatementType::EmptyStatement
+    }
+}
 
 pub trait Expression: AstNode {}
 impl Default for Box<dyn Expression> {
