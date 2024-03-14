@@ -16,6 +16,7 @@ pub trait Statement: AstNode {
 
 pub enum StatementType<'a> {
     Assign(&'a AssignStatement<'a>),
+    Return(&'a ReturnStatement<'a>),
     Empty,
 }
 
@@ -59,7 +60,7 @@ impl PrettyPrint for ReturnStatement<'_> {
 impl AstNode for ReturnStatement<'_> {}
 impl Statement for ReturnStatement<'_> {
     fn get_type(&self) -> StatementType {
-        StatementType::Empty
+        StatementType::Return(&self)
     }
 }
 

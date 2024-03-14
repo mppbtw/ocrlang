@@ -41,7 +41,6 @@ struct Parser<'a> {
 impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<(), ParserError> {
         while !matches!(self.tok, Token::Eof) {
-            // Variable assign statements
             if matches!(self.tok, Token::Global)
                 || (matches!(self.tok, Token::Identifier(_))
                     && matches!(self.peek_tok, Token::Equals))
@@ -59,11 +58,17 @@ impl<'a> Parser<'a> {
 
     fn parse_return_statement(&mut self) -> Result<ReturnStatement<'a>, ParserError> {
         let token = self.tok.clone();
-        while !(matches!(self.tok, Token::Newline) || matches!(self.tok, Token::Eof)) {
-            self.next_token()?;
-        }
+        self.next_token()?;
+        match self.tok {
+            Token::Newline | Token::Eof => Ok(ReturnStatement { token, value: None }),
+            _ => {
+                while !(matches!(self.tok, Token::Newline) || matches!(self.tok, Token::Eof)) {
+                    self.next_token()?;
+                }
 
-        Ok(ReturnStatement { token, value: None })
+                Ok(ReturnStatement { token, value: Some(Box::new(PlaceholderExpression{})) })
+            }
+        }
     }
 
     fn parse_assign_statement(&mut self) -> Result<AssignStatement<'a>, ParserError> {
@@ -142,6 +147,7 @@ pub fn parse_from_lexer(input: Lexer) -> Result<Program, ParserError> {
     let _ = parser.parse()?;
     Ok(std::mem::replace(&mut parser.prog, Program::default()))
 }
+
 pub fn parse_from_string(input: &str) -> Result<Program, ParserError> {
     let mut parser = Parser::new(Lexer::new(input)).unwrap();
     let _ = parser.parse()?;
