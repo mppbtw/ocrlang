@@ -10,11 +10,6 @@ pub trait PrettyPrint {
     fn pretty_print(&self) -> String;
 }
 
-#[derive(Default, Debug)]
-pub struct Program<'a> {
-    pub statements: Vec<Box<dyn Statement + 'a>>,
-}
-
 pub trait Statement: AstNode {}
 
 #[derive(Debug)]

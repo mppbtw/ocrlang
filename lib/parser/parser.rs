@@ -31,15 +31,15 @@ pub struct Program<'a> {
 }
 
 #[derive(Default, Debug)]
-pub struct Parser<'a> {
+struct Parser<'a> {
     lexer:    Lexer<'a>,
     tok:      Token<'a>,
     peek_tok: Token<'a>,
-    prog:     Program<'a>,
+    pub prog: Program<'a>,
 }
 
 impl<'a> Parser<'a> {
-    pub fn parse(&'a mut self) -> Result<&'a Program<'a>, ParserError> {
+    pub fn parse(&mut self) -> Result<(), ParserError> {
         while !matches!(self.tok, Token::Eof) {
             // Variable assign statements
             if matches!(self.tok, Token::Global)
@@ -54,7 +54,7 @@ impl<'a> Parser<'a> {
             }
             self.next_token()?;
         }
-        Ok(&self.prog)
+        Ok(())
     }
 
     fn parse_return_statement(&mut self) -> Result<ReturnStatement<'a>, ParserError> {
@@ -135,4 +135,15 @@ impl<'a> Parser<'a> {
         p.next_token()?;
         Ok(p)
     }
+}
+
+pub fn parse_from_lexer(input: Lexer) -> Result<Program, ParserError> {
+    let mut parser = Parser::new(input).unwrap();
+    let _ = parser.parse()?;
+    Ok(std::mem::replace(&mut parser.prog, Program::default()))
+}
+pub fn parse_from_string(input: &str) -> Result<Program, ParserError> {
+    let mut parser = Parser::new(Lexer::new(input)).unwrap();
+    let _ = parser.parse()?;
+    Ok(std::mem::take(&mut parser.prog))
 }
