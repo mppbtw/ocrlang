@@ -10,28 +10,82 @@ pub trait PrettyPrint {
     fn pretty_print(&self) -> String;
 }
 
-#[derive(Default)]
-pub struct Program<'a> {
-    pub statements: Vec<Statement<'a>>,
+pub trait Statement: AstNode {
+    fn get_type(&self) -> StatementType;
 }
 
-#[derive(Default, Debug)]
-pub enum Statement<'a> {
-    Assign {
-        token:  Token<'a>,
-        ident:  Identifier<'a>,
-        global: bool,
-        value:  Option<Box<dyn Expression>>,
-    },
-    Return {
-        token: Token<'a>,
-        value: Option<Box<dyn Expression>>,
-    },
-    #[default]
+pub enum StatementType<'a> {
+    Assign(&'a AssignStatement<'a>),
+    Return(&'a ReturnStatement<'a>),
     Empty,
 }
 
+#[derive(Debug)]
+pub struct AssignStatement<'a> {
+    pub token:  Token<'a>,
+    pub ident:  Identifier<'a>,
+    pub global: bool,
+    pub value:  Box<dyn Expression>,
+}
+impl PrettyPrint for AssignStatement<'_> {
+    fn pretty_print(&self) -> String {
+        (if self.global { "global " } else { "" }.to_owned()
+            + &self.ident.get_ident()
+            + " = "
+            + &self.value.pretty_print())
+            .to_owned()
+    }
+}
+impl AstNode for AssignStatement<'_> {}
+impl Statement for AssignStatement<'_> {
+    fn get_type(&self) -> StatementType {
+        StatementType::Assign(&self)
+    }
+}
+
+#[derive(Debug)]
+pub struct ReturnStatement<'a> {
+    pub token: Token<'a>,
+    pub value: Option<Box<dyn Expression>>,
+}
+impl PrettyPrint for ReturnStatement<'_> {
+    fn pretty_print(&self) -> String {
+        match &self.value {
+            Some(v) => "return ".to_owned() + &v.pretty_print(),
+            None => "return".to_owned(),
+        }
+        .to_owned()
+    }
+}
+impl AstNode for ReturnStatement<'_> {}
+impl Statement for ReturnStatement<'_> {
+    fn get_type(&self) -> StatementType {
+        StatementType::Return(&self)
+    }
+}
+
+#[derive(Debug)]
+pub struct EmptyStatement {}
+impl PrettyPrint for EmptyStatement {
+    fn pretty_print(&self) -> String {
+        String::new()
+    }
+}
+impl AstNode for EmptyStatement {}
+impl Statement for EmptyStatement {
+    fn get_type(&self) -> StatementType {
+        StatementType::Empty
+    }
+}
+
 pub trait Expression: AstNode {}
+impl Default for Box<dyn Expression> {
+    fn default() -> Self {
+        Box::new(Identifier {
+            token: Token::Identifier("lol"),
+        })
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Identifier<'a> {
@@ -93,3 +147,13 @@ pub struct IntegerLiteralExpression<'a> {
     pub token: Token<'a>,
     pub value: i128,
 }
+
+#[derive(Debug)]
+pub struct PlaceholderExpression {}
+impl PrettyPrint for PlaceholderExpression {
+    fn pretty_print(&self) -> String {
+        "<--PLACEHOLDEREXPRESSION-->".to_owned()
+    }
+}
+impl AstNode for PlaceholderExpression {}
+impl Expression for PlaceholderExpression {}

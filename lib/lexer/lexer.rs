@@ -78,10 +78,7 @@ impl<'a> Lexer<'a> {
                     Token::Illegal
                 }
             }
-            b'"' => {
-                dbg!("lakwjdlakd");
-                self.read_string_literal()?
-            }
+            b'"' => self.read_string_literal()?,
             _ => {
                 if self.ch.is_ascii_alphabetic() {
                     lookup_keyword(self.read_identifier())
@@ -100,10 +97,10 @@ impl<'a> Lexer<'a> {
         self.read_char();
         let pos = self.pos;
         while self.ch != b'"' && self.ch != 0 {
-            dbg!(self.ch);
             self.read_char();
         }
         self.read_pos -= 1;
+        self.read_char();
         Ok(Token::StringLiteral(&self.input[pos..self.pos]))
     }
 

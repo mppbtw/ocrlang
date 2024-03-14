@@ -1,54 +1,62 @@
-use super::Parser;
-use crate::lexer::Lexer;
-use crate::syntax::Statement;
+use super::parse_from_string;
+use crate::syntax::StatementType;
 
 #[test]
 fn test_parse_var_assign_statement() {
     let input = "a = 1
         global bb = 22
         ccc = 333";
-    let mut parser = Parser::new(Lexer::new(input)).unwrap();
-    let prog = parser.parse().unwrap();
+    let prog = parse_from_string(input).unwrap();
     assert_eq!(prog.statements.len(), 3);
 
-    let a = &prog.statements[0];
-    assert!(matches!(a, Statement::Assign { .. }));
-    if let Statement::Assign { ident, global, .. } = a {
-        assert_eq!(ident.get_ident(), "a");
-        assert!(!global);
+    assert!(matches!(
+        prog.statements[0].get_type(),
+        StatementType::Assign(_)
+    ));
+    if let StatementType::Assign(stmt) = prog.statements[0].get_type() {
+        assert!(!stmt.global);
+        assert_eq!(stmt.ident.get_ident(), "a");
     }
 
-    let b = &prog.statements[1];
-    assert!(matches!(b, Statement::Assign { .. }));
-    if let Statement::Assign { ident, global, .. } = b {
-        assert_eq!(ident.get_ident(), "bb");
-        assert!(global);
+    assert!(matches!(
+        prog.statements[1].get_type(),
+        StatementType::Assign(_)
+    ));
+    if let StatementType::Assign(stmt) = prog.statements[1].get_type() {
+        assert_eq!(stmt.ident.get_ident(), "bb");
+        assert!(stmt.global);
     }
 
-    let c = &prog.statements[2];
-    assert!(matches!(c, Statement::Assign { .. }));
-    if let Statement::Assign { ident, global, .. } = c {
-        assert_eq!(ident.get_ident(), "ccc");
-        assert!(!global);
+    assert!(matches!(
+        prog.statements[2].get_type(),
+        StatementType::Assign(_)
+    ));
+    if let StatementType::Assign(stmt) = prog.statements[2].get_type() {
+        assert_eq!(stmt.ident.get_ident(), "ccc");
+        assert!(!stmt.global);
     }
 }
 
 #[test]
 fn test_parse_return_statement() {
-    let input = "return a+b
-        return c+d";
-    let mut parser = Parser::new(Lexer::new(input)).unwrap();
-    let prog = parser.parse().unwrap();
+    let input = "return abc
+        return";
+    let prog = parse_from_string(input).unwrap();
     assert_eq!(prog.statements.len(), 2);
 
-    for s in prog.statements {
-        assert!(matches!(s, Statement::Return { .. }));
+    assert!(matches!(
+        prog.statements[0].get_type(),
+        StatementType::Return(_)
+    ));
+    if let StatementType::Return(stmt) = prog.statements[0].get_type() {
+        assert!(stmt.value.is_some())
     }
-}
 
-#[test]
-fn test_parse_integer_literal_expression() {
-    let input = "12345 6789 0001";
-    let mut parser = Parser::new(Lexer::new(input)).unwrap();
-    let prog = parser.parse().unwrap();
+    assert!(matches!(
+        prog.statements[1].get_type(),
+        StatementType::Return(_)
+    ));
+    if let StatementType::Return(stmt) = prog.statements[1].get_type() {
+        assert!(stmt.value.is_none())
+    }
 }
