@@ -30,7 +30,6 @@ pub struct Program<'a> {
     pub statements: Vec<Box<dyn Statement + 'a>>,
 }
 
-
 #[derive(Default, Debug)]
 pub struct Parser<'a> {
     lexer:    Lexer<'a>,
@@ -40,7 +39,7 @@ pub struct Parser<'a> {
 }
 
 impl<'a> Parser<'a> {
-    pub fn parse(&mut self) -> Result<&'a Program, ParserError> {
+    pub fn parse(&'a mut self) -> Result<&'a Program<'a>, ParserError> {
         while !matches!(self.tok, Token::Eof) {
             // Variable assign statements
             if matches!(self.tok, Token::Global)

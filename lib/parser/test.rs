@@ -1,6 +1,6 @@
 use super::Parser;
 use crate::lexer::Lexer;
-use crate::syntax::{Statement, StatementType};
+use crate::syntax::Statement;
 
 #[test]
 fn test_parse_var_assign_statement() {
@@ -8,7 +8,9 @@ fn test_parse_var_assign_statement() {
         global bb = 22
         ccc = 333";
     let mut parser = Parser::new(Lexer::new(input)).unwrap();
-    let mut prog = parser.parse().unwrap();
+    
+    parser.parse().unwrap();
+    
 }
 
 #[test]
