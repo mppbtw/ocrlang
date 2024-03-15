@@ -2,6 +2,8 @@ use crate::lexer::Lexer;
 use crate::lexer::LexerError;
 use crate::lexer::Token;
 use crate::syntax::AssignStatement;
+use crate::syntax::Expression;
+use crate::syntax::ExpressionStatement;
 use crate::syntax::Identifier;
 use crate::syntax::IntegerLiteralExpression;
 use crate::syntax::PlaceholderExpression;
@@ -40,7 +42,25 @@ struct Parser<'a> {
 
 impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<(), ParserError> {
-        while !matches!(self.tok, Token::Eof) {
+        loop {
+            match () {
+                () if matches!(self.tok, Token::Eof) => break,
+                () if matches!(self.tok, Token::Global)
+                    || (matches!(self.tok, Token::Identifier(_))
+                        && matches!(self.peek_tok, Token::Equals)) =>
+                {
+                    let assign_stmt = self.parse_assign_statement()?;
+                    self.prog.statements.push(Box::new(assign_stmt));
+                }
+                () if matches!(self.tok, Token::NumberLiteral(_)) => {
+                    let exp = self.parse_expression()?;
+                    self.prog
+                        .statements
+                        .push(Box::new(ExpressionStatement { value: exp }));
+                }
+                _ => return Err(ParserError::UnexpectedToken),
+            }
+
             if matches!(self.tok, Token::Global)
                 || (matches!(self.tok, Token::Identifier(_))
                     && matches!(self.peek_tok, Token::Equals))
@@ -56,6 +76,24 @@ impl<'a> Parser<'a> {
         Ok(())
     }
 
+    fn parse_expression(&mut self) -> Result<Box<dyn Expression + 'a>, ParserError> {
+        Ok(Box::new(self.parse_integer_literal_expression()?))
+    }
+
+    fn parse_integer_literal_expression(
+        &mut self,
+    ) -> Result<IntegerLiteralExpression<'a>, ParserError> {
+        let token = self.tok;
+        let value = match token {
+            Token::NumberLiteral(n) => match n.parse() {
+                Ok(i) => i,
+                _ => return Err(ParserError::UnexpectedToken),
+            },
+            _ => return Err(ParserError::UnexpectedToken),
+        };
+        Ok(IntegerLiteralExpression { token, value })
+    }
+
     fn parse_return_statement(&mut self) -> Result<ReturnStatement<'a>, ParserError> {
         let token = self.tok.clone();
         self.next_token()?;
@@ -66,7 +104,10 @@ impl<'a> Parser<'a> {
                     self.next_token()?;
                 }
 
-                Ok(ReturnStatement { token, value: Some(Box::new(PlaceholderExpression{})) })
+                Ok(ReturnStatement {
+                    token,
+                    value: Some(Box::new(PlaceholderExpression {})),
+                })
             }
         }
     }
@@ -103,20 +144,6 @@ impl<'a> Parser<'a> {
             ident: Identifier { token: ident },
             value: Box::new(PlaceholderExpression {}),
         })
-    }
-
-    fn parse_integer_literal_expression(
-        &mut self,
-    ) -> Result<IntegerLiteralExpression<'a>, ParserError> {
-        let token = self.tok;
-        let value = match token {
-            Token::NumberLiteral(n) => match n.parse() {
-                Ok(i) => i,
-                _ => return Err(ParserError::UnexpectedToken),
-            },
-            _ => return Err(ParserError::UnexpectedToken),
-        };
-        Ok(IntegerLiteralExpression { token, value })
     }
 
     pub fn next_token(&mut self) -> Result<(), LexerError> {

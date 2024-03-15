@@ -1,4 +1,5 @@
 use super::parse_from_string;
+use crate::syntax::PrettyPrint;
 use crate::syntax::StatementType;
 
 #[test]
@@ -58,5 +59,19 @@ fn test_parse_return_statement() {
     ));
     if let StatementType::Return(stmt) = prog.statements[1].get_type() {
         assert!(stmt.value.is_none())
+    }
+}
+
+#[test]
+fn test_parse_integer_literal_expression() {
+    let input = "123 456";
+    let prog = parse_from_string(input).unwrap();
+    assert_eq!(prog.statements.len(), 2);
+    assert!(matches!(
+        prog.statements[0].get_type(),
+        StatementType::Expression(_)
+    ));
+    if let StatementType::Expression(stmt) = prog.statements[0].get_type() {
+        assert_eq!(stmt.pretty_print(), "123")
     }
 }

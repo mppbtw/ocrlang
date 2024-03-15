@@ -17,6 +17,7 @@ pub trait Statement: AstNode {
 pub enum StatementType<'a> {
     Assign(&'a AssignStatement<'a>),
     Return(&'a ReturnStatement<'a>),
+    Expression(&'a ExpressionStatement<'a>),
     Empty,
 }
 
@@ -25,7 +26,7 @@ pub struct AssignStatement<'a> {
     pub token:  Token<'a>,
     pub ident:  Identifier<'a>,
     pub global: bool,
-    pub value:  Box<dyn Expression>,
+    pub value:  Box<dyn Expression + 'a>,
 }
 impl PrettyPrint for AssignStatement<'_> {
     fn pretty_print(&self) -> String {
@@ -46,7 +47,7 @@ impl Statement for AssignStatement<'_> {
 #[derive(Debug)]
 pub struct ReturnStatement<'a> {
     pub token: Token<'a>,
-    pub value: Option<Box<dyn Expression>>,
+    pub value: Option<Box<dyn Expression + 'a>>,
 }
 impl PrettyPrint for ReturnStatement<'_> {
     fn pretty_print(&self) -> String {
@@ -61,6 +62,22 @@ impl AstNode for ReturnStatement<'_> {}
 impl Statement for ReturnStatement<'_> {
     fn get_type(&self) -> StatementType {
         StatementType::Return(&self)
+    }
+}
+
+#[derive(Debug)]
+pub struct ExpressionStatement<'a> {
+    pub value: Box<dyn Expression + 'a>,
+}
+impl PrettyPrint for ExpressionStatement<'_> {
+    fn pretty_print(&self) -> String {
+        self.value.pretty_print()
+    }
+}
+impl AstNode for ExpressionStatement<'_> {}
+impl Statement for ExpressionStatement<'_> {
+    fn get_type(&self) -> StatementType {
+        StatementType::Expression(&self)
     }
 }
 
@@ -138,8 +155,8 @@ impl TryFrom<Token<'_>> for InfixOperator {
 pub struct InfixExpression<'a> {
     pub token:    Token<'a>,
     pub operator: InfixOperator,
-    pub left:     Box<dyn Expression>,
-    pub right:    Box<dyn Expression>,
+    pub left:     Box<dyn Expression + 'a>,
+    pub right:    Box<dyn Expression + 'a>,
 }
 
 #[derive(Debug)]
@@ -147,6 +164,13 @@ pub struct IntegerLiteralExpression<'a> {
     pub token: Token<'a>,
     pub value: i128,
 }
+impl PrettyPrint for IntegerLiteralExpression<'_> {
+    fn pretty_print(&self) -> String {
+        format!("{}", self.value)
+    }
+}
+impl AstNode for IntegerLiteralExpression<'_> {}
+impl Expression for IntegerLiteralExpression<'_> {}
 
 #[derive(Debug)]
 pub struct PlaceholderExpression {}
