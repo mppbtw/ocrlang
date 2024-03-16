@@ -45,6 +45,10 @@ impl<'a> Parser<'a> {
         loop {
             match () {
                 () if matches!(self.tok, Token::Eof) => break,
+                () if matches!(self.tok, Token::Return) => {
+                    let return_stmt = self.parse_return_statement()?;
+                    self.prog.statements.push(Box::new(return_stmt));
+                }
                 () if matches!(self.tok, Token::Global)
                     || (matches!(self.tok, Token::Identifier(_))
                         && matches!(self.peek_tok, Token::Equals)) =>
@@ -59,17 +63,6 @@ impl<'a> Parser<'a> {
                         .push(Box::new(ExpressionStatement { value: exp }));
                 }
                 _ => return Err(ParserError::UnexpectedToken),
-            }
-
-            if matches!(self.tok, Token::Global)
-                || (matches!(self.tok, Token::Identifier(_))
-                    && matches!(self.peek_tok, Token::Equals))
-            {
-                let assign_stmt = self.parse_assign_statement()?;
-                self.prog.statements.push(Box::new(assign_stmt));
-            } else if matches!(self.tok, Token::Return) {
-                let return_stmt = self.parse_return_statement()?;
-                self.prog.statements.push(Box::new(return_stmt));
             }
             self.next_token()?;
         }
