@@ -176,7 +176,7 @@ impl Expression for IntegerLiteralExpression<'_> {}
 pub struct PlaceholderExpression {}
 impl PrettyPrint for PlaceholderExpression {
     fn pretty_print(&self) -> String {
-        "<--PLACEHOLDEREXPRESSION-->".to_owned()
+        "<PLACEHOLDER_EXPRESSION>".to_owned()
     }
 }
 impl AstNode for PlaceholderExpression {}
