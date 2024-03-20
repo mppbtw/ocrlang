@@ -31,7 +31,7 @@ pub struct AssignStatement<'a> {
 impl PrettyPrint for AssignStatement<'_> {
     fn pretty_print(&self) -> String {
         (if self.global { "global " } else { "" }.to_owned()
-            + &self.ident.get_ident()
+            + self.ident.get_ident()
             + " = "
             + &self.value.pretty_print())
             .to_owned()
@@ -40,7 +40,7 @@ impl PrettyPrint for AssignStatement<'_> {
 impl AstNode for AssignStatement<'_> {}
 impl Statement for AssignStatement<'_> {
     fn get_type(&self) -> StatementType {
-        StatementType::Assign(&self)
+        StatementType::Assign(self)
     }
 }
 
@@ -61,7 +61,7 @@ impl PrettyPrint for ReturnStatement<'_> {
 impl AstNode for ReturnStatement<'_> {}
 impl Statement for ReturnStatement<'_> {
     fn get_type(&self) -> StatementType {
-        StatementType::Return(&self)
+        StatementType::Return(self)
     }
 }
 
@@ -77,7 +77,7 @@ impl PrettyPrint for ExpressionStatement<'_> {
 impl AstNode for ExpressionStatement<'_> {}
 impl Statement for ExpressionStatement<'_> {
     fn get_type(&self) -> StatementType {
-        StatementType::Expression(&self)
+        StatementType::Expression(self)
     }
 }
 
