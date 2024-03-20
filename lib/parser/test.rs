@@ -10,11 +10,20 @@ fn test_parse_var_assign_statement() {
     let prog = parse_from_string(input).unwrap();
     assert_eq!(prog.statements.len(), 3);
 
-    assert_eq!(prog.statements[0].pretty_print(), "a = <PLACEHOLDER_EXPRESSION>");
+    assert_eq!(
+        prog.statements[0].pretty_print(),
+        "a = <PLACEHOLDER_EXPRESSION>"
+    );
 
-    assert_eq!(prog.statements[1].pretty_print(), "global bb = <PLACEHOLDER_EXPRESSION>");
+    assert_eq!(
+        prog.statements[1].pretty_print(),
+        "global bb = <PLACEHOLDER_EXPRESSION>"
+    );
 
-    assert_eq!(prog.statements[2].pretty_print(), "ccc = <PLACEHOLDER_EXPRESSION>");
+    assert_eq!(
+        prog.statements[2].pretty_print(),
+        "ccc = <PLACEHOLDER_EXPRESSION>"
+    );
 }
 
 #[test]
@@ -24,7 +33,10 @@ fn test_parse_return_statement() {
     let prog = parse_from_string(input).unwrap();
     assert_eq!(prog.statements.len(), 2);
 
-    assert_eq!(prog.statements[0].pretty_print(), "return <PLACEHOLDER_EXPRESSION>");
+    assert_eq!(
+        prog.statements[0].pretty_print(),
+        "return <PLACEHOLDER_EXPRESSION>"
+    );
 
     assert_eq!(prog.statements[1].pretty_print(), "return");
 }

@@ -44,19 +44,29 @@ impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<(), ParserError> {
         loop {
             match () {
+                // End of file
                 () if matches!(self.tok, Token::Eof) => break,
+
+                // Return statements
                 () if matches!(self.tok, Token::Return) => {
                     let return_stmt = self.parse_return_statement()?;
                     self.prog.statements.push(Box::new(return_stmt));
                 }
-                () if matches!(self.tok, Token::Global)
-                    || (matches!(self.tok, Token::Identifier(_))
+
+                // Assign statements
+                () if (matches!(self.tok, Token::Global)
+                    || (matches!(self.tok, Token::Identifier(_)))
                         && matches!(self.peek_tok, Token::Equals)) =>
                 {
                     let assign_stmt = self.parse_assign_statement()?;
                     self.prog.statements.push(Box::new(assign_stmt));
                 }
-                () if matches!(self.tok, Token::NumberLiteral(_)) => {
+
+                // Expressions
+                () if matches!(self.tok, Token::NumberLiteral(_))
+                    || matches!(self.tok, Token::Identifier(_))
+                    || self.tok.is_prefix_op() =>
+                {
                     let exp = self.parse_expression()?;
                     self.prog
                         .statements
@@ -88,7 +98,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_return_statement(&mut self) -> Result<ReturnStatement<'a>, ParserError> {
-        let token = self.tok.clone();
+        let token = self.tok;
         self.next_token()?;
         match self.tok {
             Token::Newline | Token::Eof => Ok(ReturnStatement { token, value: None }),
@@ -106,7 +116,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_assign_statement(&mut self) -> Result<AssignStatement<'a>, ParserError> {
-        let token = self.tok.clone();
+        let token = self.tok;
         let ident;
         let mut global = false;
         match self.tok {
@@ -164,12 +174,12 @@ impl<'a> Parser<'a> {
 
 pub fn parse_from_lexer(input: Lexer) -> Result<Program, ParserError> {
     let mut parser = Parser::new(input).unwrap();
-    let _ = parser.parse()?;
-    Ok(std::mem::replace(&mut parser.prog, Program::default()))
+    parser.parse()?;
+    Ok(std::mem::take(&mut parser.prog))
 }
 
 pub fn parse_from_string(input: &str) -> Result<Program, ParserError> {
     let mut parser = Parser::new(Lexer::new(input)).unwrap();
-    let _ = parser.parse()?;
+    parser.parse()?;
     Ok(std::mem::take(&mut parser.prog))
 }
