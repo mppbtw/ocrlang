@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 use crate::lexer::Token;
 
@@ -133,7 +133,6 @@ pub enum InfixOperator {
     Div,
     Mod,
     Multiply,
-    FunctionCall,
 }
 impl TryFrom<Token<'_>> for InfixOperator {
     type Error = ();
@@ -150,6 +149,18 @@ impl TryFrom<Token<'_>> for InfixOperator {
         }
     }
 }
+impl Display for InfixOperator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match self {
+            Self::Div => " DIV ",
+            Self::Mod => " MOD ",
+            Self::Plus => "+",
+            Self::Minus => "-",
+            Self::Divide => "/",
+            Self::Multiply => "/",
+        })
+    }
+}
 
 #[derive(Debug)]
 pub struct InfixExpression<'a> {
@@ -158,6 +169,43 @@ pub struct InfixExpression<'a> {
     pub left:     Box<dyn Expression + 'a>,
     pub right:    Box<dyn Expression + 'a>,
 }
+impl PrettyPrint for InfixExpression<'_> {
+    fn pretty_print(&self) -> String {
+        self.left.pretty_print() + &self.operator.to_string() + &self.right.pretty_print()
+    }
+}
+impl AstNode for InfixExpression<'_> {}
+impl Expression for InfixExpression<'_> {}
+
+#[derive(Debug)]
+pub enum PrefixOperator {
+    Plus,
+    Minus,
+    Not
+}
+impl Display for PrefixOperator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match self {
+            Self::Plus => "+",
+            Self::Minus => "-",
+            Self::Not => "NOT ",
+        })
+    }
+}
+
+#[derive(Debug)]
+pub struct PrefixExpression<'a> {
+    pub token:    Token<'a>,
+    pub operator: PrefixOperator,
+    pub subject:    Box<dyn Expression + 'a>,
+}
+impl PrettyPrint for PrefixExpression<'_> {
+    fn pretty_print(&self) -> String {
+        self.operator.to_string() + &self.subject.pretty_print()
+    }
+}
+impl AstNode for PrefixExpression<'_> {}
+impl Expression for PrefixExpression<'_> {}
 
 #[derive(Debug)]
 pub struct IntegerLiteralExpression<'a> {
