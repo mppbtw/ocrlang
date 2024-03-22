@@ -180,4 +180,27 @@ impl Token<'_> {
         })
         .to_owned()
     }
+
+    // Check if this token could be used as a prefix operator (+, -)
+    pub fn is_prefix_op(&self) -> bool {
+        matches!(self, Self::Plus | Self::Minus | Self::Not)
+    }
+
+    // Check if this token could be used as a infix operator (+, -, DIV, MOD)
+    pub fn is_infix_op(&self) -> bool {
+        matches!(
+            self,
+            Self::Plus
+                | Self::Minus
+                | Self::Div
+                | Self::Mod
+                | Self::LThan
+                | Self::LThanOrEqual
+                | Self::GThan
+                | Self::GThanOrEqual
+                | Self::FSlash
+                | Self::Or
+                | Self::And
+        )
+    }
 }

@@ -198,3 +198,29 @@ fn test_tokenise_string_literal() {
         i += 1;
     }
 }
+
+#[test]
+fn test_is_prefix_op() {
+    assert!(Token::Plus.is_prefix_op());
+    assert!(Token::Minus.is_prefix_op());
+    assert!(Token::Not.is_prefix_op());
+
+    assert!(!Token::Or.is_prefix_op());
+}
+
+#[test]
+fn test_is_infix_op() {
+    assert!(Token::Plus.is_infix_op());
+    assert!(Token::Minus.is_infix_op());
+    assert!(Token::Or.is_infix_op());
+    assert!(Token::And.is_infix_op());
+    assert!(Token::Div.is_infix_op());
+    assert!(Token::Mod.is_infix_op());
+    assert!(Token::LThan.is_infix_op());
+    assert!(Token::GThan.is_infix_op());
+    assert!(Token::GThanOrEqual.is_infix_op());
+    assert!(Token::LThanOrEqual.is_infix_op());
+
+    assert!(!Token::Not.is_infix_op());
+    assert!(!Token::Then.is_infix_op());
+}

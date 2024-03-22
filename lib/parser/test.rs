@@ -1,4 +1,5 @@
 use super::parse_from_string;
+use crate::syntax::PrettyPrint;
 use crate::syntax::StatementType;
 
 #[test]
@@ -9,32 +10,20 @@ fn test_parse_var_assign_statement() {
     let prog = parse_from_string(input).unwrap();
     assert_eq!(prog.statements.len(), 3);
 
-    assert!(matches!(
-        prog.statements[0].get_type(),
-        StatementType::Assign(_)
-    ));
-    if let StatementType::Assign(stmt) = prog.statements[0].get_type() {
-        assert!(!stmt.global);
-        assert_eq!(stmt.ident.get_ident(), "a");
-    }
+    assert_eq!(
+        prog.statements[0].pretty_print(),
+        "a = <PLACEHOLDER_EXPRESSION>"
+    );
 
-    assert!(matches!(
-        prog.statements[1].get_type(),
-        StatementType::Assign(_)
-    ));
-    if let StatementType::Assign(stmt) = prog.statements[1].get_type() {
-        assert_eq!(stmt.ident.get_ident(), "bb");
-        assert!(stmt.global);
-    }
+    assert_eq!(
+        prog.statements[1].pretty_print(),
+        "global bb = <PLACEHOLDER_EXPRESSION>"
+    );
 
-    assert!(matches!(
-        prog.statements[2].get_type(),
-        StatementType::Assign(_)
-    ));
-    if let StatementType::Assign(stmt) = prog.statements[2].get_type() {
-        assert_eq!(stmt.ident.get_ident(), "ccc");
-        assert!(!stmt.global);
-    }
+    assert_eq!(
+        prog.statements[2].pretty_print(),
+        "ccc = <PLACEHOLDER_EXPRESSION>"
+    );
 }
 
 #[test]
@@ -44,19 +33,19 @@ fn test_parse_return_statement() {
     let prog = parse_from_string(input).unwrap();
     assert_eq!(prog.statements.len(), 2);
 
-    assert!(matches!(
-        prog.statements[0].get_type(),
-        StatementType::Return(_)
-    ));
-    if let StatementType::Return(stmt) = prog.statements[0].get_type() {
-        assert!(stmt.value.is_some())
-    }
+    assert_eq!(
+        prog.statements[0].pretty_print(),
+        "return <PLACEHOLDER_EXPRESSION>"
+    );
 
-    assert!(matches!(
-        prog.statements[1].get_type(),
-        StatementType::Return(_)
-    ));
-    if let StatementType::Return(stmt) = prog.statements[1].get_type() {
-        assert!(stmt.value.is_none())
-    }
+    assert_eq!(prog.statements[1].pretty_print(), "return");
+}
+
+#[test]
+fn test_parse_integer_literal_expression() {
+    let input = "123 456";
+    let prog = parse_from_string(input).unwrap();
+    assert_eq!(prog.statements.len(), 2);
+    assert_eq!(prog.statements[0].pretty_print(), "123");
+    assert_eq!(prog.statements[1].pretty_print(), "456");
 }

@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 use crate::lexer::Token;
 
@@ -17,6 +17,7 @@ pub trait Statement: AstNode {
 pub enum StatementType<'a> {
     Assign(&'a AssignStatement<'a>),
     Return(&'a ReturnStatement<'a>),
+    Expression(&'a ExpressionStatement<'a>),
     Empty,
 }
 
@@ -25,12 +26,12 @@ pub struct AssignStatement<'a> {
     pub token:  Token<'a>,
     pub ident:  Identifier<'a>,
     pub global: bool,
-    pub value:  Box<dyn Expression>,
+    pub value:  Box<dyn Expression + 'a>,
 }
 impl PrettyPrint for AssignStatement<'_> {
     fn pretty_print(&self) -> String {
         (if self.global { "global " } else { "" }.to_owned()
-            + &self.ident.get_ident()
+            + self.ident.get_ident()
             + " = "
             + &self.value.pretty_print())
             .to_owned()
@@ -39,14 +40,14 @@ impl PrettyPrint for AssignStatement<'_> {
 impl AstNode for AssignStatement<'_> {}
 impl Statement for AssignStatement<'_> {
     fn get_type(&self) -> StatementType {
-        StatementType::Assign(&self)
+        StatementType::Assign(self)
     }
 }
 
 #[derive(Debug)]
 pub struct ReturnStatement<'a> {
     pub token: Token<'a>,
-    pub value: Option<Box<dyn Expression>>,
+    pub value: Option<Box<dyn Expression + 'a>>,
 }
 impl PrettyPrint for ReturnStatement<'_> {
     fn pretty_print(&self) -> String {
@@ -60,7 +61,23 @@ impl PrettyPrint for ReturnStatement<'_> {
 impl AstNode for ReturnStatement<'_> {}
 impl Statement for ReturnStatement<'_> {
     fn get_type(&self) -> StatementType {
-        StatementType::Return(&self)
+        StatementType::Return(self)
+    }
+}
+
+#[derive(Debug)]
+pub struct ExpressionStatement<'a> {
+    pub value: Box<dyn Expression + 'a>,
+}
+impl PrettyPrint for ExpressionStatement<'_> {
+    fn pretty_print(&self) -> String {
+        self.value.pretty_print()
+    }
+}
+impl AstNode for ExpressionStatement<'_> {}
+impl Statement for ExpressionStatement<'_> {
+    fn get_type(&self) -> StatementType {
+        StatementType::Expression(self)
     }
 }
 
@@ -116,7 +133,6 @@ pub enum InfixOperator {
     Div,
     Mod,
     Multiply,
-    FunctionCall,
 }
 impl TryFrom<Token<'_>> for InfixOperator {
     type Error = ();
@@ -133,26 +149,93 @@ impl TryFrom<Token<'_>> for InfixOperator {
         }
     }
 }
+impl Display for InfixOperator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match self {
+            Self::Div => " DIV ",
+            Self::Mod => " MOD ",
+            Self::Plus => "+",
+            Self::Minus => "-",
+            Self::Divide => "/",
+            Self::Multiply => "/",
+        })
+    }
+}
 
 #[derive(Debug)]
 pub struct InfixExpression<'a> {
     pub token:    Token<'a>,
     pub operator: InfixOperator,
-    pub left:     Box<dyn Expression>,
-    pub right:    Box<dyn Expression>,
+    pub left:     Box<dyn Expression + 'a>,
+    pub right:    Box<dyn Expression + 'a>,
 }
+impl PrettyPrint for InfixExpression<'_> {
+    fn pretty_print(&self) -> String {
+        self.left.pretty_print() + &self.operator.to_string() + &self.right.pretty_print()
+    }
+}
+impl AstNode for InfixExpression<'_> {}
+impl Expression for InfixExpression<'_> {}
+
+#[derive(Debug)]
+pub enum PrefixOperator {
+    Plus,
+    Minus,
+    Not
+}
+impl TryFrom<Token<'_>> for PrefixOperator {
+    type Error = ();
+    fn try_from(value: Token) -> Result<Self, Self::Error> {
+        match value {
+            Token::Plus => Ok(Self::Plus),
+            Token::Minus => Ok(Self::Minus),
+            Token::Not=> Ok(Self::Not),
+            _ => Err(())
+        }
+    }
+}
+impl Display for PrefixOperator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match self {
+            Self::Plus => "+",
+            Self::Minus => "-",
+            Self::Not => "NOT ",
+        })
+    }
+}
+
+#[derive(Debug)]
+pub struct PrefixExpression<'a> {
+    pub token:    Token<'a>,
+    pub operator: PrefixOperator,
+    pub subject:    Box<dyn Expression + 'a>,
+}
+impl PrettyPrint for PrefixExpression<'_> {
+    fn pretty_print(&self) -> String {
+        self.operator.to_string() + &self.subject.pretty_print()
+    }
+}
+impl AstNode for PrefixExpression<'_> {}
+impl Expression for PrefixExpression<'_> {}
 
 #[derive(Debug)]
 pub struct IntegerLiteralExpression<'a> {
     pub token: Token<'a>,
     pub value: i128,
 }
+impl PrettyPrint for IntegerLiteralExpression<'_> {
+    fn pretty_print(&self) -> String {
+        format!("{}", self.value)
+    }
+}
+impl AstNode for IntegerLiteralExpression<'_> {}
+impl Expression for IntegerLiteralExpression<'_> {}
 
 #[derive(Debug)]
 pub struct PlaceholderExpression {}
 impl PrettyPrint for PlaceholderExpression {
     fn pretty_print(&self) -> String {
-        "<--PLACEHOLDEREXPRESSION-->".to_owned()
+        "<PLACEHOLDER_EXPRESSION>".to_owned()
     }
 }
 impl AstNode for PlaceholderExpression {}
