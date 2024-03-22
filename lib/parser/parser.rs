@@ -10,6 +10,18 @@ use crate::syntax::PlaceholderExpression;
 use crate::syntax::ReturnStatement;
 use crate::syntax::Statement;
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Precedence {
+    #[default]
+    Lowest,
+    Equality,
+    Inequality,
+    Sum,
+    Product,
+    Prefix,
+    Call,
+}
+
 #[derive(Debug, Clone, Copy, Default)]
 pub enum ParserError {
     UnterminatedStringLiteral,
@@ -43,10 +55,8 @@ struct Parser<'a> {
 impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<(), ParserError> {
         loop {
+            dbg!(self.tok);
             match () {
-                // End of file
-                () if matches!(self.tok, Token::Eof) => break,
-
                 // Return statements
                 () if matches!(self.tok, Token::Return) => {
                     let return_stmt = self.parse_return_statement()?;
@@ -72,6 +82,9 @@ impl<'a> Parser<'a> {
                         .statements
                         .push(Box::new(ExpressionStatement { value: exp }));
                 }
+                () if matches!(self.tok, Token::Newline) => {}
+                () if matches!(self.tok, Token::Eof) => break,
+
                 _ => return Err(ParserError::UnexpectedToken),
             }
             self.next_token()?;
@@ -80,7 +93,19 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expression(&mut self) -> Result<Box<dyn Expression + 'a>, ParserError> {
-        Ok(Box::new(self.parse_integer_literal_expression()?))
+        match self.tok {
+            Token::Identifier(_) => Ok(Box::new(self.parse_identifier()?)),
+            Token::NumberLiteral(_) => Ok(Box::new(self.parse_integer_literal_expression()?)),
+            _ => Err(ParserError::UnexpectedToken),
+        }
+    }
+
+    fn parse_identifier(&mut self) -> Result<Identifier<'a>, ParserError> {
+        if let Token::Identifier(_) = self.tok {
+            Ok(Identifier { token: self.tok })
+        } else {
+            Err(ParserError::UnexpectedToken)
+        }
     }
 
     fn parse_integer_literal_expression(

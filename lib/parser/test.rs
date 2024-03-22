@@ -1,6 +1,4 @@
 use super::parse_from_string;
-use crate::syntax::PrettyPrint;
-use crate::syntax::StatementType;
 
 #[test]
 fn test_parse_var_assign_statement() {
@@ -24,6 +22,20 @@ fn test_parse_var_assign_statement() {
         prog.statements[2].pretty_print(),
         "ccc = <PLACEHOLDER_EXPRESSION>"
     );
+}
+
+#[test]
+fn test_parse_identifier_expression() {
+    let input = "foo bar
+        baz";
+    let prog = parse_from_string(input).unwrap();
+    assert_eq!(prog.statements.len(), 3);
+
+    assert_eq!(prog.statements[0].pretty_print(), "foo");
+
+    assert_eq!(prog.statements[1].pretty_print(), "bar");
+
+    assert_eq!(prog.statements[2].pretty_print(), "baz");
 }
 
 #[test]

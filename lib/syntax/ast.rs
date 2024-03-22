@@ -1,4 +1,5 @@
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
+use std::fmt::Display;
 
 use crate::lexer::Token;
 
@@ -184,16 +185,17 @@ impl Expression for InfixExpression<'_> {}
 pub enum PrefixOperator {
     Plus,
     Minus,
-    Not
+    Not,
 }
 impl TryFrom<Token<'_>> for PrefixOperator {
     type Error = ();
+
     fn try_from(value: Token) -> Result<Self, Self::Error> {
         match value {
             Token::Plus => Ok(Self::Plus),
             Token::Minus => Ok(Self::Minus),
-            Token::Not=> Ok(Self::Not),
-            _ => Err(())
+            Token::Not => Ok(Self::Not),
+            _ => Err(()),
         }
     }
 }
@@ -211,7 +213,7 @@ impl Display for PrefixOperator {
 pub struct PrefixExpression<'a> {
     pub token:    Token<'a>,
     pub operator: PrefixOperator,
-    pub subject:    Box<dyn Expression + 'a>,
+    pub subject:  Box<dyn Expression + 'a>,
 }
 impl PrettyPrint for PrefixExpression<'_> {
     fn pretty_print(&self) -> String {
