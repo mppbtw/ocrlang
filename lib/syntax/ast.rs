@@ -133,6 +133,7 @@ pub enum InfixOperator {
     Div,
     Mod,
     Multiply,
+    DoubleEquals,
 }
 impl TryFrom<Token<'_>> for InfixOperator {
     type Error = ();
@@ -145,6 +146,7 @@ impl TryFrom<Token<'_>> for InfixOperator {
             Token::Div => Ok(Self::Div),
             Token::Mod => Ok(Self::Mod),
             Token::Asterisk => Ok(Self::Multiply),
+            Token::DoubleEquals => Ok(Self::DoubleEquals),
             _ => Err(()),
         }
     }
@@ -158,6 +160,7 @@ impl Display for InfixOperator {
             Self::Minus => "-",
             Self::Divide => "/",
             Self::Multiply => "/",
+            Self::DoubleEquals => "==",
         })
     }
 }
