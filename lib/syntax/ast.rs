@@ -183,6 +183,17 @@ pub enum PrefixOperator {
     Minus,
     Not
 }
+impl TryFrom<Token<'_>> for PrefixOperator {
+    type Error = ();
+    fn try_from(value: Token) -> Result<Self, Self::Error> {
+        match value {
+            Token::Plus => Ok(Self::Plus),
+            Token::Minus => Ok(Self::Minus),
+            Token::Not=> Ok(Self::Not),
+            _ => Err(())
+        }
+    }
+}
 impl Display for PrefixOperator {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", match self {
