@@ -1,5 +1,6 @@
 use super::ast::Identifier;
 use super::ast::PrettyPrint;
+use super::BooleanExpression;
 use super::PlaceholderExpression;
 use super::PrefixExpression;
 use crate::lexer::Token;
@@ -44,4 +45,17 @@ fn test_pretty_print_infix_op() {
         op.pretty_print(),
         "<PLACEHOLDER_EXPRESSION>/<PLACEHOLDER_EXPRESSION>"
     )
+}
+
+#[test]
+fn test_pretty_print_bool_expression() {
+    assert_eq!(BooleanExpression {
+        token: Token::Eof,
+        value: true
+    }.pretty_print(), "true");
+
+    assert_eq!(BooleanExpression {
+        token: Token::Eof,
+        value: false
+    }.pretty_print(), "false");
 }
