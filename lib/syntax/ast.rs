@@ -96,7 +96,18 @@ impl Statement for EmptyStatement {
     }
 }
 
-pub trait Expression: AstNode {}
+pub enum ExpressionType<'a> {
+    Identifier(&'a Identifier<'a>),
+    Boolean(&'a BooleanExpression<'a>),
+    Placeholder(&'a PlaceholderExpression),
+    IntegerLiteral(&'a IntegerLiteralExpression<'a>),
+    Prefix(&'a PrefixExpression<'a>),
+    Infix(&'a InfixExpression<'a>),
+}
+
+pub trait Expression: AstNode {
+    fn get_type(&self) -> ExpressionType;
+}
 impl Default for Box<dyn Expression> {
     fn default() -> Self {
         Box::new(Identifier {
@@ -124,7 +135,11 @@ impl PrettyPrint for Identifier<'_> {
     }
 }
 impl AstNode for Identifier<'_> {}
-impl Expression for Identifier<'_> {}
+impl Expression for Identifier<'_> {
+    fn get_type(&self) -> ExpressionType {
+        ExpressionType::Identifier(&self)
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum InfixOperator {
@@ -179,7 +194,11 @@ impl PrettyPrint for InfixExpression<'_> {
     }
 }
 impl AstNode for InfixExpression<'_> {}
-impl Expression for InfixExpression<'_> {}
+impl Expression for InfixExpression<'_> {
+    fn get_type(&self) -> ExpressionType {
+        ExpressionType::Infix(&self)
+    }
+}
 
 #[derive(Debug)]
 pub enum PrefixOperator {
@@ -221,7 +240,11 @@ impl PrettyPrint for PrefixExpression<'_> {
     }
 }
 impl AstNode for PrefixExpression<'_> {}
-impl Expression for PrefixExpression<'_> {}
+impl Expression for PrefixExpression<'_> {
+    fn get_type(&self) -> ExpressionType {
+        ExpressionType::Prefix(&self)
+    }
+}
 
 #[derive(Debug)]
 pub struct IntegerLiteralExpression<'a> {
@@ -234,7 +257,11 @@ impl PrettyPrint for IntegerLiteralExpression<'_> {
     }
 }
 impl AstNode for IntegerLiteralExpression<'_> {}
-impl Expression for IntegerLiteralExpression<'_> {}
+impl Expression for IntegerLiteralExpression<'_> {
+    fn get_type(&self) -> ExpressionType {
+        ExpressionType::IntegerLiteral(&self)
+    }
+}
 
 #[derive(Debug)]
 pub struct PlaceholderExpression {}
@@ -244,4 +271,25 @@ impl PrettyPrint for PlaceholderExpression {
     }
 }
 impl AstNode for PlaceholderExpression {}
-impl Expression for PlaceholderExpression {}
+impl Expression for PlaceholderExpression {
+    fn get_type(&self) -> ExpressionType {
+        ExpressionType::Placeholder(&self)
+    }
+}
+
+#[derive(Debug)]
+pub struct BooleanExpression<'a> {
+    pub token: Token<'a>,
+    pub value: bool,
+}
+impl PrettyPrint for BooleanExpression<'_> {
+    fn pretty_print(&self) -> String {
+        if self.value { "true" } else { "false" }.to_owned()
+    }
+}
+impl AstNode for BooleanExpression<'_> {}
+impl Expression for BooleanExpression<'_> {
+    fn get_type(&self) -> ExpressionType {
+        ExpressionType::Boolean(&self)
+    }
+}

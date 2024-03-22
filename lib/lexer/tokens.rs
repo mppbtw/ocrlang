@@ -65,7 +65,6 @@ pub enum Token<'a> {
     True,
     False,
 
-
     Newline,
 
     #[default]

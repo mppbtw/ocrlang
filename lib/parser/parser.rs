@@ -2,6 +2,7 @@ use crate::lexer::Lexer;
 use crate::lexer::LexerError;
 use crate::lexer::Token;
 use crate::syntax::AssignStatement;
+use crate::syntax::BooleanExpression;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionStatement;
 use crate::syntax::Identifier;
@@ -55,7 +56,6 @@ struct Parser<'a> {
 impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<(), ParserError> {
         loop {
-            dbg!(self.tok);
             match () {
                 // Return statements
                 () if matches!(self.tok, Token::Return) => {
@@ -72,20 +72,16 @@ impl<'a> Parser<'a> {
                     self.prog.statements.push(Box::new(assign_stmt));
                 }
 
-                // Expressions
-                () if matches!(self.tok, Token::NumberLiteral(_))
-                    || matches!(self.tok, Token::Identifier(_))
-                    || self.tok.is_prefix_op() =>
-                {
+                () if matches!(self.tok, Token::Newline) => {}
+                () if matches!(self.tok, Token::Eof) => break,
+
+                // Expression statements
+                _ => {
                     let exp = self.parse_expression()?;
                     self.prog
                         .statements
                         .push(Box::new(ExpressionStatement { value: exp }));
                 }
-                () if matches!(self.tok, Token::Newline) => {}
-                () if matches!(self.tok, Token::Eof) => break,
-
-                _ => return Err(ParserError::UnexpectedToken),
             }
             self.next_token()?;
         }
@@ -96,8 +92,20 @@ impl<'a> Parser<'a> {
         match self.tok {
             Token::Identifier(_) => Ok(Box::new(self.parse_identifier()?)),
             Token::NumberLiteral(_) => Ok(Box::new(self.parse_integer_literal_expression()?)),
+            Token::True | Token::False => Ok(Box::new(self.parse_bool_expression()?)),
             _ => Err(ParserError::UnexpectedToken),
         }
+    }
+
+    fn parse_bool_expression(&mut self) -> Result<BooleanExpression<'a>, ParserError> {
+        Ok(BooleanExpression {
+            token: self.tok,
+            value: match self.tok {
+                Token::True => true,
+                Token::False => false,
+                _ => return Err(ParserError::UnexpectedToken),
+            },
+        })
     }
 
     fn parse_identifier(&mut self) -> Result<Identifier<'a>, ParserError> {
