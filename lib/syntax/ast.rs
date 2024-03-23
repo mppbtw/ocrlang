@@ -137,7 +137,7 @@ impl PrettyPrint for Identifier<'_> {
 impl AstNode for Identifier<'_> {}
 impl Expression for Identifier<'_> {
     fn get_type(&self) -> ExpressionType {
-        ExpressionType::Identifier(&self)
+        ExpressionType::Identifier(self)
     }
 }
 
@@ -196,7 +196,7 @@ impl PrettyPrint for InfixExpression<'_> {
 impl AstNode for InfixExpression<'_> {}
 impl Expression for InfixExpression<'_> {
     fn get_type(&self) -> ExpressionType {
-        ExpressionType::Infix(&self)
+        ExpressionType::Infix(self)
     }
 }
 
@@ -242,7 +242,7 @@ impl PrettyPrint for PrefixExpression<'_> {
 impl AstNode for PrefixExpression<'_> {}
 impl Expression for PrefixExpression<'_> {
     fn get_type(&self) -> ExpressionType {
-        ExpressionType::Prefix(&self)
+        ExpressionType::Prefix(self)
     }
 }
 
@@ -259,7 +259,7 @@ impl PrettyPrint for IntegerLiteralExpression<'_> {
 impl AstNode for IntegerLiteralExpression<'_> {}
 impl Expression for IntegerLiteralExpression<'_> {
     fn get_type(&self) -> ExpressionType {
-        ExpressionType::IntegerLiteral(&self)
+        ExpressionType::IntegerLiteral(self)
     }
 }
 
@@ -273,7 +273,7 @@ impl PrettyPrint for PlaceholderExpression {
 impl AstNode for PlaceholderExpression {}
 impl Expression for PlaceholderExpression {
     fn get_type(&self) -> ExpressionType {
-        ExpressionType::Placeholder(&self)
+        ExpressionType::Placeholder(self)
     }
 }
 
@@ -290,6 +290,6 @@ impl PrettyPrint for BooleanExpression<'_> {
 impl AstNode for BooleanExpression<'_> {}
 impl Expression for BooleanExpression<'_> {
     fn get_type(&self) -> ExpressionType {
-        ExpressionType::Boolean(&self)
+        ExpressionType::Boolean(self)
     }
 }
