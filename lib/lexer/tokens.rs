@@ -62,6 +62,9 @@ pub enum Token<'a> {
     Div,
     Mod,
 
+    True,
+    False,
+
     Newline,
 
     #[default]
@@ -74,6 +77,8 @@ static KEYWORDS: LazyLock<HashMap<&str, Token>> = LazyLock::new(|| {
     use Token::*;
 
     HashMap::from([
+        ("false", False),
+        ("true", True),
         ("then", Then),
         ("switch", Switch),
         ("endswitch", Endswitch),
@@ -116,6 +121,8 @@ pub fn lookup_keyword(ident: &str) -> Token {
 static PRETTY_TOKEN_NAMES: LazyLock<HashMap<Token, &str>> = LazyLock::new(|| {
     use Token::*;
     HashMap::from([
+        (True, "true"),
+        (False, "false"),
         (While, "while"),
         (Endwhile, "endwhile"),
         (For, "for"),

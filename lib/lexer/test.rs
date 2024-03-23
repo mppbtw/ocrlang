@@ -224,3 +224,31 @@ fn test_is_infix_op() {
     assert!(!Token::Not.is_infix_op());
     assert!(!Token::Then.is_infix_op());
 }
+
+#[test]
+fn test_tokenise_booleans() {
+    let input = "true true
+
+        false";
+
+    let expected = vec![
+        Token::True,
+        Token::True,
+        Token::Newline,
+        Token::Newline,
+        Token::False,
+        Token::Eof,
+    ];
+
+    let mut i = 0;
+    let mut lexer = Lexer::new(input);
+    loop {
+        let expected_token = &expected[i];
+        let tok = lexer.next_token().unwrap();
+        assert_eq!(tok, *expected_token);
+        if matches!(tok, Token::Eof) {
+            break;
+        }
+        i += 1;
+    }
+}

@@ -1,4 +1,5 @@
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
+use std::fmt::Display;
 
 use crate::lexer::Token;
 
@@ -95,7 +96,18 @@ impl Statement for EmptyStatement {
     }
 }
 
-pub trait Expression: AstNode {}
+pub enum ExpressionType<'a> {
+    Identifier(&'a Identifier<'a>),
+    Boolean(&'a BooleanExpression<'a>),
+    Placeholder(&'a PlaceholderExpression),
+    IntegerLiteral(&'a IntegerLiteralExpression<'a>),
+    Prefix(&'a PrefixExpression<'a>),
+    Infix(&'a InfixExpression<'a>),
+}
+
+pub trait Expression: AstNode {
+    fn get_type(&self) -> ExpressionType;
+}
 impl Default for Box<dyn Expression> {
     fn default() -> Self {
         Box::new(Identifier {
@@ -123,7 +135,11 @@ impl PrettyPrint for Identifier<'_> {
     }
 }
 impl AstNode for Identifier<'_> {}
-impl Expression for Identifier<'_> {}
+impl Expression for Identifier<'_> {
+    fn get_type(&self) -> ExpressionType {
+        ExpressionType::Identifier(self)
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum InfixOperator {
@@ -133,6 +149,7 @@ pub enum InfixOperator {
     Div,
     Mod,
     Multiply,
+    DoubleEquals,
 }
 impl TryFrom<Token<'_>> for InfixOperator {
     type Error = ();
@@ -145,6 +162,7 @@ impl TryFrom<Token<'_>> for InfixOperator {
             Token::Div => Ok(Self::Div),
             Token::Mod => Ok(Self::Mod),
             Token::Asterisk => Ok(Self::Multiply),
+            Token::DoubleEquals => Ok(Self::DoubleEquals),
             _ => Err(()),
         }
     }
@@ -158,6 +176,7 @@ impl Display for InfixOperator {
             Self::Minus => "-",
             Self::Divide => "/",
             Self::Multiply => "/",
+            Self::DoubleEquals => "==",
         })
     }
 }
@@ -175,22 +194,27 @@ impl PrettyPrint for InfixExpression<'_> {
     }
 }
 impl AstNode for InfixExpression<'_> {}
-impl Expression for InfixExpression<'_> {}
+impl Expression for InfixExpression<'_> {
+    fn get_type(&self) -> ExpressionType {
+        ExpressionType::Infix(self)
+    }
+}
 
 #[derive(Debug)]
 pub enum PrefixOperator {
     Plus,
     Minus,
-    Not
+    Not,
 }
 impl TryFrom<Token<'_>> for PrefixOperator {
     type Error = ();
+
     fn try_from(value: Token) -> Result<Self, Self::Error> {
         match value {
             Token::Plus => Ok(Self::Plus),
             Token::Minus => Ok(Self::Minus),
-            Token::Not=> Ok(Self::Not),
-            _ => Err(())
+            Token::Not => Ok(Self::Not),
+            _ => Err(()),
         }
     }
 }
@@ -208,7 +232,7 @@ impl Display for PrefixOperator {
 pub struct PrefixExpression<'a> {
     pub token:    Token<'a>,
     pub operator: PrefixOperator,
-    pub subject:    Box<dyn Expression + 'a>,
+    pub subject:  Box<dyn Expression + 'a>,
 }
 impl PrettyPrint for PrefixExpression<'_> {
     fn pretty_print(&self) -> String {
@@ -216,7 +240,11 @@ impl PrettyPrint for PrefixExpression<'_> {
     }
 }
 impl AstNode for PrefixExpression<'_> {}
-impl Expression for PrefixExpression<'_> {}
+impl Expression for PrefixExpression<'_> {
+    fn get_type(&self) -> ExpressionType {
+        ExpressionType::Prefix(self)
+    }
+}
 
 #[derive(Debug)]
 pub struct IntegerLiteralExpression<'a> {
@@ -229,7 +257,11 @@ impl PrettyPrint for IntegerLiteralExpression<'_> {
     }
 }
 impl AstNode for IntegerLiteralExpression<'_> {}
-impl Expression for IntegerLiteralExpression<'_> {}
+impl Expression for IntegerLiteralExpression<'_> {
+    fn get_type(&self) -> ExpressionType {
+        ExpressionType::IntegerLiteral(self)
+    }
+}
 
 #[derive(Debug)]
 pub struct PlaceholderExpression {}
@@ -239,4 +271,25 @@ impl PrettyPrint for PlaceholderExpression {
     }
 }
 impl AstNode for PlaceholderExpression {}
-impl Expression for PlaceholderExpression {}
+impl Expression for PlaceholderExpression {
+    fn get_type(&self) -> ExpressionType {
+        ExpressionType::Placeholder(self)
+    }
+}
+
+#[derive(Debug)]
+pub struct BooleanExpression<'a> {
+    pub token: Token<'a>,
+    pub value: bool,
+}
+impl PrettyPrint for BooleanExpression<'_> {
+    fn pretty_print(&self) -> String {
+        if self.value { "true" } else { "false" }.to_owned()
+    }
+}
+impl AstNode for BooleanExpression<'_> {}
+impl Expression for BooleanExpression<'_> {
+    fn get_type(&self) -> ExpressionType {
+        ExpressionType::Boolean(self)
+    }
+}

@@ -1,5 +1,6 @@
 use super::ast::Identifier;
 use super::ast::PrettyPrint;
+use super::BooleanExpression;
 use super::PlaceholderExpression;
 use super::PrefixExpression;
 use crate::lexer::Token;
@@ -18,27 +19,58 @@ fn test_pretty_print_identifiers() {
 #[test]
 fn test_pretty_print_prefix_op() {
     let op = PrefixExpression {
-        subject: Box::new(PlaceholderExpression{}),
+        subject:  Box::new(PlaceholderExpression {}),
         operator: PrefixOperator::Minus,
-        token: Token::default(),
+        token:    Token::default(),
     };
     assert_eq!(op.pretty_print(), "-<PLACEHOLDER_EXPRESSION>");
 
     let op = PrefixExpression {
-        subject: Box::new(PlaceholderExpression{}),
+        subject:  Box::new(PlaceholderExpression {}),
         operator: PrefixOperator::Not,
-        token: Token::default(),
+        token:    Token::default(),
     };
-    assert_eq!(op.pretty_print(), "NOT <PLACEHOLDER_EXPRESSION>")
+    assert_eq!(op.pretty_print(), "NOT <PLACEHOLDER_EXPRESSION>");
+
+    let op = PrefixExpression {
+        subject:  Box::new(PlaceholderExpression {}),
+        operator: PrefixOperator::Plus,
+        token:    Token::default(),
+    };
+    assert_eq!(op.pretty_print(), "+<PLACEHOLDER_EXPRESSION>")
 }
 
 #[test]
 fn test_pretty_print_infix_op() {
     let op = InfixExpression {
         operator: InfixOperator::Divide,
-        left: Box::new(PlaceholderExpression{}),
-        right: Box::new(PlaceholderExpression{}),
-        token: Token::default(),
+        left:     Box::new(PlaceholderExpression {}),
+        right:    Box::new(PlaceholderExpression {}),
+        token:    Token::default(),
     };
-    assert_eq!(op.pretty_print(), "<PLACEHOLDER_EXPRESSION>/<PLACEHOLDER_EXPRESSION>")
+    assert_eq!(
+        op.pretty_print(),
+        "<PLACEHOLDER_EXPRESSION>/<PLACEHOLDER_EXPRESSION>"
+    )
+}
+
+#[test]
+fn test_pretty_print_bool_expression() {
+    assert_eq!(
+        BooleanExpression {
+            token: Token::Eof,
+            value: true,
+        }
+        .pretty_print(),
+        "true"
+    );
+
+    assert_eq!(
+        BooleanExpression {
+            token: Token::Eof,
+            value: false,
+        }
+        .pretty_print(),
+        "false"
+    );
 }
