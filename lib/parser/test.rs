@@ -92,3 +92,32 @@ fn test_parse_prefix_expressions() {
     assert_eq!(prog.statements.len(), 3);
     assert_eq!(prog.statements[0].pretty_print(), "NOT true");
 }
+
+#[test]
+fn test_parse_infix_expressions() {
+    let input = "69 + 420
+        69 - 420
+        69 * 420
+        69 / 420
+        69 < 420
+        69 <= 420
+        69 > 420
+        69 >= 420
+        69 == 420
+        69 MOD 420
+        69 DIV 420
+        69 != 420
+        true OR false
+        ";
+    let prog = parse_from_string(input).unwrap();
+    assert_eq!(prog.statements.len(), 13);
+
+    assert_eq!(
+        prog.statements
+            .iter()
+            .map(|stmt| stmt.pretty_print() + "\n")
+            .collect::<Vec<String>>()
+            .join("\n"),
+        input
+    );
+}

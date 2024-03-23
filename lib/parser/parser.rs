@@ -95,24 +95,25 @@ impl<'a> Parser<'a> {
             Token::Identifier(_) => Ok(Box::new(self.parse_identifier()?)),
             Token::NumberLiteral(_) => Ok(Box::new(self.parse_integer_literal_expression()?)),
             Token::True | Token::False => Ok(Box::new(self.parse_bool_expression()?)),
-            _ if self.tok.is_prefix_op() => {
-                Ok(Box::new(self.parse_prefix_expression()?))
+            _ if self.tok.is_prefix_op() => Ok(Box::new(self.parse_prefix_expression()?)),
+            _ => {
+                dbg!("No parsing rule for token", self.tok);
+                Err(ParserError::UnexpectedToken)
             }
-            _ => Err(ParserError::UnexpectedToken),
         }
     }
 
     fn parse_prefix_expression(&mut self) -> Result<PrefixExpression<'a>, ParserError> {
         Ok(PrefixExpression {
-            token: self.tok,
+            token:    self.tok,
             operator: match self.tok.try_into() {
                 Ok(p) => p,
                 Err(_) => return Err(ParserError::UnexpectedToken),
             },
-            subject: {
+            subject:  {
                 let _ = self.next_token();
                 self.parse_expression()?
-            }
+            },
         })
     }
 

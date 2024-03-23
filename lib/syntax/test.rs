@@ -56,13 +56,21 @@ fn test_pretty_print_infix_op() {
 
 #[test]
 fn test_pretty_print_bool_expression() {
-    assert_eq!(BooleanExpression {
-        token: Token::Eof,
-        value: true
-    }.pretty_print(), "true");
+    assert_eq!(
+        BooleanExpression {
+            token: Token::Eof,
+            value: true,
+        }
+        .pretty_print(),
+        "true"
+    );
 
-    assert_eq!(BooleanExpression {
-        token: Token::Eof,
-        value: false
-    }.pretty_print(), "false");
+    assert_eq!(
+        BooleanExpression {
+            token: Token::Eof,
+            value: false,
+        }
+        .pretty_print(),
+        "false"
+    );
 }

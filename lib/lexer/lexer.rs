@@ -45,6 +45,7 @@ impl<'a> Lexer<'a> {
             b'{' => Token::LSquirly,
             b'}' => Token::RSquirly,
             b'\n' => Token::Newline,
+            b'*' => Token::Asterisk,
             0 => Token::Eof,
             b'>' => {
                 if self.peek_char() == b'=' {
