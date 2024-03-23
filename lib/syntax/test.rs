@@ -30,7 +30,14 @@ fn test_pretty_print_prefix_op() {
         operator: PrefixOperator::Not,
         token:    Token::default(),
     };
-    assert_eq!(op.pretty_print(), "NOT <PLACEHOLDER_EXPRESSION>")
+    assert_eq!(op.pretty_print(), "NOT <PLACEHOLDER_EXPRESSION>");
+
+    let op = PrefixExpression {
+        subject:  Box::new(PlaceholderExpression {}),
+        operator: PrefixOperator::Plus,
+        token:    Token::default(),
+    };
+    assert_eq!(op.pretty_print(), "+<PLACEHOLDER_EXPRESSION>")
 }
 
 #[test]

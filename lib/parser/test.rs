@@ -1,8 +1,5 @@
 use super::parse_from_string;
-use crate::syntax::BooleanExpression;
-use crate::syntax::ExpressionStatement;
 use crate::syntax::ExpressionType;
-use crate::syntax::Statement;
 use crate::syntax::StatementType;
 
 #[test]
@@ -84,4 +81,14 @@ fn test_parse_bool_expression() {
     assert_eq!(prog.statements[0].pretty_print(), "true");
     assert_eq!(prog.statements[1].pretty_print(), "true");
     assert_eq!(prog.statements[2].pretty_print(), "false");
+}
+
+#[test]
+fn test_parse_prefix_expressions() {
+    let input = "NOT true
+
+        -5 +2";
+    let prog = parse_from_string(input).unwrap();
+    assert_eq!(prog.statements.len(), 3);
+    assert_eq!(prog.statements[0].pretty_print(), "NOT true");
 }

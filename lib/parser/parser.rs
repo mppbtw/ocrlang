@@ -8,6 +8,8 @@ use crate::syntax::ExpressionStatement;
 use crate::syntax::Identifier;
 use crate::syntax::IntegerLiteralExpression;
 use crate::syntax::PlaceholderExpression;
+use crate::syntax::PrefixExpression;
+use crate::syntax::PrefixOperator;
 use crate::syntax::ReturnStatement;
 use crate::syntax::Statement;
 
@@ -93,8 +95,25 @@ impl<'a> Parser<'a> {
             Token::Identifier(_) => Ok(Box::new(self.parse_identifier()?)),
             Token::NumberLiteral(_) => Ok(Box::new(self.parse_integer_literal_expression()?)),
             Token::True | Token::False => Ok(Box::new(self.parse_bool_expression()?)),
+            _ if self.tok.is_prefix_op() => {
+                Ok(Box::new(self.parse_prefix_expression()?))
+            }
             _ => Err(ParserError::UnexpectedToken),
         }
+    }
+
+    fn parse_prefix_expression(&mut self) -> Result<PrefixExpression<'a>, ParserError> {
+        Ok(PrefixExpression {
+            token: self.tok,
+            operator: match self.tok.try_into() {
+                Ok(p) => p,
+                Err(_) => return Err(ParserError::UnexpectedToken),
+            },
+            subject: {
+                let _ = self.next_token();
+                self.parse_expression()?
+            }
+        })
     }
 
     fn parse_bool_expression(&mut self) -> Result<BooleanExpression<'a>, ParserError> {
