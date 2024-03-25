@@ -118,76 +118,7 @@ pub fn lookup_keyword(ident: &str) -> Token {
     }
 }
 
-static PRETTY_TOKEN_NAMES: LazyLock<HashMap<Token, &str>> = LazyLock::new(|| {
-    use Token::*;
-    HashMap::from([
-        (True, "true"),
-        (False, "false"),
-        (While, "while"),
-        (Endwhile, "endwhile"),
-        (For, "for"),
-        (Endfor, "endfor"),
-        (If, "id"),
-        (Global, "global"),
-        (Next, "next"),
-        (Do, "do"),
-        (Until, "until"),
-        (Or, "or"),
-        (Not, "not"),
-        (And, "AND"),
-        (Endif, "endif"),
-        (Return, "return"),
-        (Function, "function"),
-        (Endfunction, "endfunction"),
-        (Then, "then"),
-        (Switch, "switch"),
-        (Case, "case"),
-        (Default, "default"),
-        (Endswitch, "endswitch"),
-        (Procedure, "procedure"),
-        (Endprocedure, "endprocedure"),
-        (Equals, "Equals"),
-        (DoubleEquals, "DoubleEquals"),
-        (NotEqual, "NotEqual"),
-        (GThanOrEqual, "GreaterThanOrEqual"),
-        (LThanOrEqual, "LessThanOrEqual"),
-        (GThan, "GreaterThan"),
-        (LThan, "LessThan"),
-        (LParenthasis, "LeftParenthasis"),
-        (RParenthasis, "RightParenthasis"),
-        (LSquirly, "RightSquirlyBrace"),
-        (RSquirly, "DoubleEquals"),
-        (LSquareBracket, "LeftSquareBracket"),
-        (RSquareBracket, "RightSquareBracket"),
-        (Plus, "Plus"),
-        (Asterisk, "Asterisk"),
-        (FSlash, "ForwardSlash"),
-        (Minus, "Minus"),
-        (Div, "DIV"),
-        (Mod, "MOD"),
-        (Caret, "Caret"),
-        (Colon, "Colon"),
-        (Comma, "Comma"),
-        (Eof, "EndOfFile"),
-        (Newline, "Newline"),
-        (Illegal, "Illegal"),
-    ])
-});
-
 impl Token<'_> {
-    /// Fancy names of tokens used for debug/error prints.
-    pub fn pretty_name(&self) -> String {
-        // The hashmap only works for tokens that don't hold data as that requires
-        // expression matching, there might be a better solution but for now they
-        // are checked in this abstraction
-        (match self {
-            Token::Identifier(_) => "Identifier",
-            Token::StringLiteral(_) => "StringLiteral",
-            _ => PRETTY_TOKEN_NAMES.get_key_value(self).unwrap().1,
-        })
-        .to_owned()
-    }
-
     // Check if this token could be used as a prefix operator (+, -)
     pub fn is_prefix_op(&self) -> bool {
         matches!(self, Self::Plus | Self::Minus | Self::Not)
