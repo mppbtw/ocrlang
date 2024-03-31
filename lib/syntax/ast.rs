@@ -175,7 +175,7 @@ impl Display for InfixOperator {
             Self::Plus => "+",
             Self::Minus => "-",
             Self::Divide => "/",
-            Self::Multiply => "/",
+            Self::Multiply => "*",
             Self::DoubleEquals => "==",
         })
     }
