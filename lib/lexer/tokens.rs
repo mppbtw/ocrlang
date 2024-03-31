@@ -1,6 +1,3 @@
-use std::collections::HashMap;
-use std::sync::LazyLock;
-
 /// The token emmitted by the lexer. It is worth noting that this is cheap to
 /// copy and move around as it only contains references to data stored in the
 /// input string.
@@ -71,50 +68,40 @@ pub enum Token<'a> {
     Illegal,
 }
 
-/// Map of the keyword's literal appearance in code to the tokens of that
-/// literal, e.g. 'return' => Token::Return.
-static KEYWORDS: LazyLock<HashMap<&str, Token>> = LazyLock::new(|| {
-    use Token::*;
-
-    HashMap::from([
-        ("false", False),
-        ("true", True),
-        ("then", Then),
-        ("switch", Switch),
-        ("endswitch", Endswitch),
-        ("case", Case),
-        ("default", Default),
-        ("return", Return),
-        ("for", For),
-        ("endfor", Endfor),
-        ("global", Global),
-        ("do", Do),
-        ("until", Until),
-        ("if", If),
-        ("OR", Or),
-        ("NOT", Not),
-        ("AND", And),
-        ("DIV", Div),
-        ("MOD", Mod),
-        ("while", While),
-        ("endwhile", Endwhile),
-        ("next", Next),
-        ("endif", Endif),
-        ("procedure", Procedure),
-        ("endprocedure", Endprocedure),
-        ("function", Function),
-        ("endfunction", Endfunction),
-    ])
-});
-
 /// Check the identifier against a map of keywords, if none of them match then
 /// Token::Identifier will be returned.
 pub fn lookup_keyword(ident: &str) -> Token {
-    // I don't like using `get_key_value` here but apparently `LazyLock<HashMap<_,
-    // _>>` doesn't have a regular get method for just the value.
-    match KEYWORDS.get_key_value(ident) {
-        Some((_, b)) => b.to_owned(),
-        None => Token::Identifier(ident),
+    use Token::*;
+
+    match ident {
+        "true" => True,
+        "false" => False,
+        "switch" => Switch,
+        "endswitch" => Endswitch,
+        "case" => Case,
+        "default" => Default,
+        "return" => Return,
+        "for" => For,
+        "endfor" => Endfor,
+        "global" => Global,
+        "do" => Do,
+        "until" => Until,
+        "if" => If,
+        "then" => Then,
+        "OR" => Or,
+        "NOT" => Not,
+        "AND" => And,
+        "DIV" => Div,
+        "MOD" => Mod,
+        "while" => While,
+        "endwhile" => Endwhile,
+        "next" => Next,
+        "endif" => Endif,
+        "procedure" => Procedure,
+        "endprocedure" => Endprocedure,
+        "function" => Function,
+        "endfunction" => Endfunction,
+        _ => Identifier(ident)
     }
 }
 
