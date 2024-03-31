@@ -59,6 +59,9 @@ impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<(), ParserError> {
         loop {
             match () {
+                () if matches!(self.tok, Token::Newline) => {}
+                () if matches!(self.tok, Token::Eof) => break,
+
                 // Return statements
                 () if matches!(self.tok, Token::Return) => {
                     let return_stmt = self.parse_return_statement()?;
@@ -74,12 +77,9 @@ impl<'a> Parser<'a> {
                     self.prog.statements.push(Box::new(assign_stmt));
                 }
 
-                () if matches!(self.tok, Token::Newline) => {}
-                () if matches!(self.tok, Token::Eof) => break,
-
                 // Expression statements
                 _ => {
-                    let exp = self.parse_expression()?;
+                    let exp = self.parse_expr(Precedence::Lowest)?;
                     self.prog
                         .statements
                         .push(Box::new(ExpressionStatement { value: exp }));
@@ -90,20 +90,26 @@ impl<'a> Parser<'a> {
         Ok(())
     }
 
-    fn parse_expression(&mut self) -> Result<Box<dyn Expression + 'a>, ParserError> {
+    fn parse_expr(&mut self, prec: Precedence) -> Result<Box<dyn Expression + 'a>, ParserError> {
+        self.parse_left_expr()
+    }
+
+    fn parse_left_expr(&mut self) -> Result<Box<dyn Expression + 'a>, ParserError> {
+        use Token::*;
+
         match self.tok {
-            Token::Identifier(_) => Ok(Box::new(self.parse_identifier()?)),
-            Token::NumberLiteral(_) => Ok(Box::new(self.parse_integer_literal_expression()?)),
-            Token::True | Token::False => Ok(Box::new(self.parse_bool_expression()?)),
-            _ if self.tok.is_prefix_op() => Ok(Box::new(self.parse_prefix_expression()?)),
+            Not | Plus | Minus => Ok(Box::new(self.parse_prefix_expr()?)),
+            Identifier(_) => Ok(Box::new(self.parse_identifier()?)),
+            NumberLiteral(_) => Ok(Box::new(self.parse_number_literal_expr()?)),
+            True | False => Ok(Box::new(self.parse_bool_expr()?)),
             _ => {
-                dbg!("No parsing rule for token", self.tok);
+                dbg!(self.tok);
                 Err(ParserError::UnexpectedToken)
             }
         }
     }
 
-    fn parse_prefix_expression(&mut self) -> Result<PrefixExpression<'a>, ParserError> {
+    fn parse_prefix_expr(&mut self) -> Result<PrefixExpression<'a>, ParserError> {
         Ok(PrefixExpression {
             token:    self.tok,
             operator: match self.tok.try_into() {
@@ -112,12 +118,12 @@ impl<'a> Parser<'a> {
             },
             subject:  {
                 let _ = self.next_token();
-                self.parse_expression()?
+                self.parse_expr(Precedence::Prefix)?
             },
         })
     }
 
-    fn parse_bool_expression(&mut self) -> Result<BooleanExpression<'a>, ParserError> {
+    fn parse_bool_expr(&mut self) -> Result<BooleanExpression<'a>, ParserError> {
         Ok(BooleanExpression {
             token: self.tok,
             value: match self.tok {
@@ -136,7 +142,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_integer_literal_expression(
+    fn parse_number_literal_expr(
         &mut self,
     ) -> Result<IntegerLiteralExpression<'a>, ParserError> {
         let token = self.tok;
