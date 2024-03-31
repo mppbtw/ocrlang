@@ -101,7 +101,7 @@ pub fn lookup_keyword(ident: &str) -> Token {
         "endprocedure" => Endprocedure,
         "function" => Function,
         "endfunction" => Endfunction,
-        _ => Identifier(ident)
+        _ => Identifier(ident),
     }
 }
 

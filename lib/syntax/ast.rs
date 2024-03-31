@@ -150,19 +150,33 @@ pub enum InfixOperator {
     Mod,
     Multiply,
     DoubleEquals,
+    NotEqual,
+    LThan,
+    LThanOrEqual,
+    GThanOrEqual,
+    GThan,
+    Or,
 }
 impl TryFrom<Token<'_>> for InfixOperator {
     type Error = NoSuchInfixOperatorError;
 
     fn try_from(value: Token) -> Result<Self, Self::Error> {
+        use Token::*;
+
         match value {
-            Token::Plus => Ok(Self::Plus),
-            Token::Minus => Ok(Self::Minus),
-            Token::FSlash => Ok(Self::Divide),
-            Token::Div => Ok(Self::Div),
-            Token::Mod => Ok(Self::Mod),
-            Token::Asterisk => Ok(Self::Multiply),
-            Token::DoubleEquals => Ok(Self::DoubleEquals),
+            Plus => Ok(Self::Plus),
+            Minus => Ok(Self::Minus),
+            FSlash => Ok(Self::Divide),
+            Div => Ok(Self::Div),
+            Mod => Ok(Self::Mod),
+            Asterisk => Ok(Self::Multiply),
+            DoubleEquals => Ok(Self::DoubleEquals),
+            LThan => Ok(Self::LThan),
+            LThanOrEqual => Ok(Self::LThanOrEqual),
+            GThan => Ok(Self::GThan),
+            GThanOrEqual => Ok(Self::GThanOrEqual),
+            NotEqual => Ok(Self::NotEqual),
+            Or => Ok(Self::Or),
             _ => Err(NoSuchInfixOperatorError),
         }
     }
@@ -172,11 +186,17 @@ impl Display for InfixOperator {
         write!(f, "{}", match self {
             Self::Div => " DIV ",
             Self::Mod => " MOD ",
+            Self::Or => " OR ",
             Self::Plus => "+",
             Self::Minus => "-",
             Self::Divide => "/",
             Self::Multiply => "*",
             Self::DoubleEquals => "==",
+            Self::LThanOrEqual => "<=",
+            Self::LThan => "<",
+            Self::GThan => ">",
+            Self::GThanOrEqual => ">=",
+            Self::NotEqual => "!=",
         })
     }
 }

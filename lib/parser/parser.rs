@@ -20,6 +20,8 @@ pub enum Precedence {
     Lowest,
     Equality,
     Inequality,
+    And,
+    Or,
     Sum,
     Product,
     Prefix,
@@ -32,8 +34,10 @@ impl From<Token<'_>> for Precedence {
         match value {
             GThan | LThan | LThanOrEqual | GThanOrEqual => Self::Inequality,
             DoubleEquals | NotEqual => Self::Equality,
-            Plus | Minus => Self::Sum,
+            Plus | Minus | Mod | Div => Self::Sum,
             FSlash | Asterisk => Self::Product,
+            And => Self::And,
+            Or => Self::Or,
             _ => Self::Lowest,
         }
     }
@@ -110,14 +114,22 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expr(&mut self, prec: Precedence) -> Result<Box<dyn Expression + 'a>, ParserError> {
+        dbg!("b");
+        dbg!(self.tok);
         let mut left_expr = self.parse_left_expr()?;
+        dbg!("a");
         while !matches!(self.peek_tok, Token::Newline | Token::Eof) && prec < self.peek_tok.into() {
+            self.next_token()?;
+            dbg!(self.tok);
             left_expr = self.parse_infix_expression(left_expr)?;
         }
         Ok(left_expr)
     }
 
-    fn parse_infix_expression(&mut self, left: Box<dyn Expression + 'a>) -> Result<Box<dyn Expression + 'a>, ParserError> {
+    fn parse_infix_expression(
+        &mut self,
+        left: Box<dyn Expression + 'a>,
+    ) -> Result<Box<dyn Expression + 'a>, ParserError> {
         Ok(Box::new(InfixExpression {
             left,
             token: self.tok,
@@ -125,8 +137,7 @@ impl<'a> Parser<'a> {
             right: {
                 self.next_token()?;
                 self.parse_expr(self.tok.into())?
-            }
-            
+            },
         }))
     }
 
@@ -138,9 +149,7 @@ impl<'a> Parser<'a> {
             Identifier(_) => Ok(Box::new(self.parse_identifier()?)),
             NumberLiteral(_) => Ok(Box::new(self.parse_number_literal_expr()?)),
             True | False => Ok(Box::new(self.parse_bool_expr()?)),
-            _ => {
-                Err(ParserError::UnexpectedToken)
-            }
+            _ => Err(ParserError::UnexpectedToken),
         }
     }
 
@@ -177,9 +186,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_number_literal_expr(
-        &mut self,
-    ) -> Result<IntegerLiteralExpression<'a>, ParserError> {
+    fn parse_number_literal_expr(&mut self) -> Result<IntegerLiteralExpression<'a>, ParserError> {
         let token = self.tok;
         let value = match token {
             Token::NumberLiteral(n) => match n.parse() {

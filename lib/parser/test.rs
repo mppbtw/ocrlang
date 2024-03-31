@@ -98,27 +98,26 @@ fn test_parse_prefix_expressions() {
 
 #[test]
 fn test_parse_infix_expressions() {
-    let input = "69 + 420
-        69 - 420
-        69 * 420
-        69 / 420
-        69 < 420
-        69 <= 420
-        69 > 420
-        69 >= 420
-        69 == 420
-        69 MOD 420
-        69 DIV 420
-        69 != 420
-        true OR false
-        ";
+    let input = "69+420
+69-420
+69*420
+69/420
+69<420
+69<=420
+69>420
+69>=420
+69==420
+69 MOD 420
+69 DIV 420
+69!=420
+true OR false";
     let prog = parse_from_string(input).unwrap();
     assert_eq!(prog.statements.len(), 13);
 
     assert_eq!(
         prog.statements
             .iter()
-            .map(|stmt| stmt.pretty_print() + "\n")
+            .map(|stmt| stmt.pretty_print())
             .collect::<Vec<String>>()
             .join("\n"),
         input
