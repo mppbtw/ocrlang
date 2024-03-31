@@ -27,7 +27,7 @@ fn test_parse_var_assign_statement() {
 }
 
 #[test]
-fn test_parse_identifier_expression() {
+fn test_parse_identifier_expr() {
     let input = "foo bar
         baz";
     let prog = parse_from_string(input).unwrap();
@@ -56,7 +56,7 @@ fn test_parse_return_statement() {
 }
 
 #[test]
-fn test_parse_integer_literal_expression() {
+fn test_parse_number_literal_expr() {
     let input = "123 456";
     let prog = parse_from_string(input).unwrap();
     assert_eq!(prog.statements.len(), 2);
@@ -65,7 +65,7 @@ fn test_parse_integer_literal_expression() {
 }
 
 #[test]
-fn test_parse_bool_expression() {
+fn test_parse_bool_expr() {
     let input = "true true
 
             false";
