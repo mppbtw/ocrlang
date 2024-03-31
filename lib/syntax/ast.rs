@@ -152,7 +152,7 @@ pub enum InfixOperator {
     DoubleEquals,
 }
 impl TryFrom<Token<'_>> for InfixOperator {
-    type Error = ();
+    type Error = NoSuchInfixOperatorError;
 
     fn try_from(value: Token) -> Result<Self, Self::Error> {
         match value {
@@ -163,7 +163,7 @@ impl TryFrom<Token<'_>> for InfixOperator {
             Token::Mod => Ok(Self::Mod),
             Token::Asterisk => Ok(Self::Multiply),
             Token::DoubleEquals => Ok(Self::DoubleEquals),
-            _ => Err(()),
+            _ => Err(NoSuchInfixOperatorError),
         }
     }
 }
@@ -180,6 +180,8 @@ impl Display for InfixOperator {
         })
     }
 }
+#[derive(Debug, Clone)]
+pub struct NoSuchInfixOperatorError;
 
 #[derive(Debug)]
 pub struct InfixExpression<'a> {

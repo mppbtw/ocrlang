@@ -6,10 +6,11 @@ use crate::syntax::BooleanExpression;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionStatement;
 use crate::syntax::Identifier;
+use crate::syntax::InfixExpression;
 use crate::syntax::IntegerLiteralExpression;
+use crate::syntax::NoSuchInfixOperatorError;
 use crate::syntax::PlaceholderExpression;
 use crate::syntax::PrefixExpression;
-use crate::syntax::PrefixOperator;
 use crate::syntax::ReturnStatement;
 use crate::syntax::Statement;
 
@@ -23,6 +24,19 @@ pub enum Precedence {
     Product,
     Prefix,
     Call,
+}
+impl From<Token<'_>> for Precedence {
+    fn from(value: Token) -> Self {
+        use Token::*;
+
+        match value {
+            GThan | LThan | LThanOrEqual | GThanOrEqual => Self::Inequality,
+            DoubleEquals | NotEqual => Self::Equality,
+            Plus | Minus => Self::Sum,
+            FSlash | Asterisk => Self::Product,
+            _ => Self::Lowest,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -39,6 +53,11 @@ impl From<LexerError> for ParserError {
         match value {
             LexerError::UnterminatedStringLiteral => Self::UnterminatedStringLiteral,
         }
+    }
+}
+impl From<NoSuchInfixOperatorError> for ParserError {
+    fn from(_: NoSuchInfixOperatorError) -> Self {
+        ParserError::UnexpectedToken
     }
 }
 
@@ -91,7 +110,24 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expr(&mut self, prec: Precedence) -> Result<Box<dyn Expression + 'a>, ParserError> {
-        self.parse_left_expr()
+        let mut left_expr = self.parse_left_expr()?;
+        while !matches!(self.peek_tok, Token::Newline | Token::Eof) && prec < self.peek_tok.into() {
+            left_expr = self.parse_infix_expression(left_expr)?;
+        }
+        Ok(left_expr)
+    }
+
+    fn parse_infix_expression(&mut self, left: Box<dyn Expression + 'a>) -> Result<Box<dyn Expression + 'a>, ParserError> {
+        Ok(Box::new(InfixExpression {
+            left,
+            token: self.tok,
+            operator: self.tok.try_into()?,
+            right: {
+                self.next_token()?;
+                self.parse_expr(self.tok.into())?
+            }
+            
+        }))
     }
 
     fn parse_left_expr(&mut self) -> Result<Box<dyn Expression + 'a>, ParserError> {
@@ -103,7 +139,6 @@ impl<'a> Parser<'a> {
             NumberLiteral(_) => Ok(Box::new(self.parse_number_literal_expr()?)),
             True | False => Ok(Box::new(self.parse_bool_expr()?)),
             _ => {
-                dbg!(self.tok);
                 Err(ParserError::UnexpectedToken)
             }
         }
@@ -117,7 +152,7 @@ impl<'a> Parser<'a> {
                 Err(_) => return Err(ParserError::UnexpectedToken),
             },
             subject:  {
-                let _ = self.next_token();
+                self.next_token()?;
                 self.parse_expr(Precedence::Prefix)?
             },
         })
