@@ -114,13 +114,9 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expr(&mut self, prec: Precedence) -> Result<Box<dyn Expression + 'a>, ParserError> {
-        dbg!("b");
-        dbg!(self.tok);
         let mut left_expr = self.parse_left_expr()?;
-        dbg!("a");
         while !matches!(self.peek_tok, Token::Newline | Token::Eof) && prec < self.peek_tok.into() {
             self.next_token()?;
-            dbg!(self.tok);
             left_expr = self.parse_infix_expression(left_expr)?;
         }
         Ok(left_expr)
