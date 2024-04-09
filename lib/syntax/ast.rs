@@ -107,6 +107,10 @@ pub enum ExpressionType<'a> {
 
 pub trait Expression: AstNode {
     fn get_type(&self) -> ExpressionType;
+    /// Instead of `1 + 2 * 3` will give `(1 + (2 * 3))`
+    fn pretty_print_with_brackets(&self) -> String {
+        "(".to_owned() + &self.pretty_print() + ")"
+    }
 }
 impl Default for Box<dyn Expression> {
     fn default() -> Self {
@@ -141,7 +145,7 @@ impl Expression for Identifier<'_> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum InfixOperator {
     Plus,
     Minus,
@@ -219,6 +223,16 @@ impl AstNode for InfixExpression<'_> {}
 impl Expression for InfixExpression<'_> {
     fn get_type(&self) -> ExpressionType {
         ExpressionType::Infix(self)
+    }
+    fn pretty_print_with_brackets(&self) -> String {
+        "(".to_owned() + &self.left.pretty_print_with_brackets() + &self.operator.to_string() + &self.right.pretty_print_with_brackets()
+        /*
+        if let ExpressionType::Infix(x) = self.right.get_type() && x.operator < self.operator {
+            "(".to_owned() + &self.left.pretty_print_with_brackets() + &self.operator.to_string()
+        } else {
+            "".to_owned()
+        }
+        */
     }
 }
 
