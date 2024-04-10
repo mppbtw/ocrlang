@@ -101,17 +101,17 @@ pub fn lookup_keyword(ident: &str) -> Token {
         "endprocedure" => Endprocedure,
         "function" => Function,
         "endfunction" => Endfunction,
-        _ => Identifier(ident)
+        _ => Identifier(ident),
     }
 }
 
 impl Token<'_> {
-    // Check if this token could be used as a prefix operator (+, -)
+    /// Check if this token could be used as a prefix operator (+, -)
     pub fn is_prefix_op(&self) -> bool {
         matches!(self, Self::Plus | Self::Minus | Self::Not)
     }
 
-    // Check if this token could be used as a infix operator (+, -, DIV, MOD)
+    /// Check if this token could be used as a infix operator (+, -, DIV, MOD)
     pub fn is_infix_op(&self) -> bool {
         matches!(
             self,

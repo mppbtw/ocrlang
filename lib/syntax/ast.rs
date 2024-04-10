@@ -107,6 +107,10 @@ pub enum ExpressionType<'a> {
 
 pub trait Expression: AstNode {
     fn get_type(&self) -> ExpressionType;
+    /// Instead of `1 + 2 * 3` will give `(1 + (2 * 3))`
+    fn pretty_print_with_brackets(&self) -> String {
+        self.pretty_print()
+    }
 }
 impl Default for Box<dyn Expression> {
     fn default() -> Self {
@@ -141,7 +145,7 @@ impl Expression for Identifier<'_> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum InfixOperator {
     Plus,
     Minus,
@@ -150,20 +154,34 @@ pub enum InfixOperator {
     Mod,
     Multiply,
     DoubleEquals,
+    NotEqual,
+    LThan,
+    LThanOrEqual,
+    GThanOrEqual,
+    GThan,
+    Or,
 }
 impl TryFrom<Token<'_>> for InfixOperator {
-    type Error = ();
+    type Error = NoSuchInfixOperatorError;
 
     fn try_from(value: Token) -> Result<Self, Self::Error> {
+        use Token::*;
+
         match value {
-            Token::Plus => Ok(Self::Plus),
-            Token::Minus => Ok(Self::Minus),
-            Token::FSlash => Ok(Self::Divide),
-            Token::Div => Ok(Self::Div),
-            Token::Mod => Ok(Self::Mod),
-            Token::Asterisk => Ok(Self::Multiply),
-            Token::DoubleEquals => Ok(Self::DoubleEquals),
-            _ => Err(()),
+            Plus => Ok(Self::Plus),
+            Minus => Ok(Self::Minus),
+            FSlash => Ok(Self::Divide),
+            Div => Ok(Self::Div),
+            Mod => Ok(Self::Mod),
+            Asterisk => Ok(Self::Multiply),
+            DoubleEquals => Ok(Self::DoubleEquals),
+            LThan => Ok(Self::LThan),
+            LThanOrEqual => Ok(Self::LThanOrEqual),
+            GThan => Ok(Self::GThan),
+            GThanOrEqual => Ok(Self::GThanOrEqual),
+            NotEqual => Ok(Self::NotEqual),
+            Or => Ok(Self::Or),
+            _ => Err(NoSuchInfixOperatorError),
         }
     }
 }
@@ -172,14 +190,22 @@ impl Display for InfixOperator {
         write!(f, "{}", match self {
             Self::Div => " DIV ",
             Self::Mod => " MOD ",
+            Self::Or => " OR ",
             Self::Plus => "+",
             Self::Minus => "-",
             Self::Divide => "/",
-            Self::Multiply => "/",
+            Self::Multiply => "*",
             Self::DoubleEquals => "==",
+            Self::LThanOrEqual => "<=",
+            Self::LThan => "<",
+            Self::GThan => ">",
+            Self::GThanOrEqual => ">=",
+            Self::NotEqual => "!=",
         })
     }
 }
+#[derive(Debug, Clone)]
+pub struct NoSuchInfixOperatorError;
 
 #[derive(Debug)]
 pub struct InfixExpression<'a> {
@@ -197,6 +223,14 @@ impl AstNode for InfixExpression<'_> {}
 impl Expression for InfixExpression<'_> {
     fn get_type(&self) -> ExpressionType {
         ExpressionType::Infix(self)
+    }
+
+    fn pretty_print_with_brackets(&self) -> String {
+        "(".to_owned()
+            + &self.left.pretty_print_with_brackets()
+            + &self.operator.to_string()
+            + &self.right.pretty_print_with_brackets()
+            + ")"
     }
 }
 
@@ -243,6 +277,9 @@ impl AstNode for PrefixExpression<'_> {}
 impl Expression for PrefixExpression<'_> {
     fn get_type(&self) -> ExpressionType {
         ExpressionType::Prefix(self)
+    }
+    fn pretty_print_with_brackets(&self) -> String {
+        "(".to_owned() + &self.pretty_print() + ")"
     }
 }
 
