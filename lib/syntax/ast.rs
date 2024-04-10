@@ -278,6 +278,9 @@ impl Expression for PrefixExpression<'_> {
     fn get_type(&self) -> ExpressionType {
         ExpressionType::Prefix(self)
     }
+    fn pretty_print_with_brackets(&self) -> String {
+        "(".to_owned() + &self.pretty_print() + ")"
+    }
 }
 
 #[derive(Debug)]
