@@ -125,16 +125,16 @@ true OR false";
 
 #[test]
 fn test_infix_expression_precedence() {
-    let input = [
-        ["5+5", "(5+5)"],
-        ["5*5 + 5", "((5*5)+5)"]
-    ];
+    let input = [["5+5", "(5+5)"], ["5*5+5", "((5*5)+5)"]];
     let input_lines = input.map(|l| l[0]).join("\n");
     let prog = parse_from_string(&input_lines).unwrap();
     assert_eq!(prog.statements.len(), input.len());
 
     for i in 0..input.len() {
-        assert!(matches!(prog.statements[i].get_type(), StatementType::Expression(_)));
+        assert!(matches!(
+            prog.statements[i].get_type(),
+            StatementType::Expression(_)
+        ));
         if let StatementType::Expression(x) = prog.statements[i].get_type() {
             assert_eq!(x.value.pretty_print_with_brackets(), input[i][1]);
         }

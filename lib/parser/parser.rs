@@ -34,8 +34,8 @@ impl From<Token<'_>> for Precedence {
         match value {
             GThan | LThan | LThanOrEqual | GThanOrEqual => Self::Inequality,
             DoubleEquals | NotEqual => Self::Equality,
-            Plus | Minus | Mod | Div => Self::Sum,
-            FSlash | Asterisk => Self::Product,
+            Plus | Minus => Self::Sum,
+            FSlash | Asterisk | Mod | Div => Self::Product,
             And => Self::And,
             Or => Self::Or,
             _ => Self::Lowest,
@@ -131,8 +131,9 @@ impl<'a> Parser<'a> {
             token: self.tok,
             operator: self.tok.try_into()?,
             right: {
+                let prec: Precedence = self.tok.into();
                 self.next_token()?;
-                self.parse_expr(self.tok.into())?
+                self.parse_expr(prec)?
             },
         }))
     }
