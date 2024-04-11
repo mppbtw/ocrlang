@@ -241,15 +241,15 @@ impl<'a> Parser<'a> {
             return Err(ParserError::UnexpectedToken(self.tok.into()));
         }
 
-        while !(matches!(self.tok, Token::Newline) || matches!(self.tok, Token::Eof)) {
-            self.next_token()?;
-        }
-
         Ok(AssignStatement {
             token,
             global,
             ident: Identifier { token: ident },
-            value: Box::new(PlaceholderExpression {}),
+            value: {
+                let prec: Precedence = self.tok.into();
+                self.next_token()?;
+                self.parse_expr(prec)?
+            },
         })
     }
 
