@@ -129,3 +129,138 @@ impl Token<'_> {
         )
     }
 }
+
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+pub struct TokenDebugInfo {
+    pub tok_type: TokenType
+}
+impl From<Token<'_>> for TokenDebugInfo {
+    fn from(value: Token) -> Self {
+        Self {
+            tok_type: value.into()
+        }
+    }
+}
+
+// Variation of the Token enum except with no attached data, only the variant type data is stored
+#[derive(Hash, PartialEq, Eq, Debug, Default, Clone, Copy)]
+pub enum TokenType {
+    Identifier,
+    Equals,
+    DoubleEquals,
+    NotEqual,
+    GThanOrEqual,
+    LThanOrEqual,
+    GThan,
+    LThan,
+    StringLiteral,
+    LParenthasis,
+    RParenthasis,
+    LSquirly,
+    RSquirly,
+    LSquareBracket,
+    RSquareBracket,
+    Plus,
+    Asterisk,
+    FSlash,
+    Minus,
+    Caret,
+    Colon,
+    NumberLiteral,
+    Comma,
+    Eof,
+
+    Global,
+    For,
+    Endfor,
+    Next,
+    While,
+    Endwhile,
+    Do,
+    Until,
+    And,
+    If,
+    Or,
+    Not,
+    Endif,
+    Return,
+    Function,
+    Endfunction,
+    Then,
+    Switch,
+    Case,
+    Default,
+    Endswitch,
+    Procedure,
+    Endprocedure,
+    Div,
+    Mod,
+
+    True,
+    False,
+
+    Newline,
+
+    #[default]
+    Illegal,
+}
+impl From<Token<'_>> for TokenType {
+    fn from(value: Token) -> Self {
+        use TokenType::*;
+        match value {
+            Token::Identifier(_) => Identifier,
+            Token::Equals => Equals,
+            Token::DoubleEquals => DoubleEquals,
+            Token::NotEqual => NotEqual,
+            Token::GThanOrEqual => GThanOrEqual,
+            Token::LThanOrEqual => LThanOrEqual,
+            Token::GThan => GThan,
+            Token::LThan => LThan,
+            Token::StringLiteral(_) => StringLiteral,
+            Token::LParenthasis => LParenthasis,
+            Token::RParenthasis => RParenthasis,
+            Token::LSquirly => LSquirly,
+            Token::RSquirly => RSquirly,
+            Token::LSquareBracket => LSquareBracket,
+            Token::RSquareBracket => RSquareBracket,
+            Token::Plus => Plus,
+            Token::Asterisk => Asterisk,
+            Token::FSlash => FSlash,
+            Token::Minus => Minus,
+            Token::Caret => Caret,
+            Token::Colon => Colon,
+            Token::NumberLiteral(_) => NumberLiteral,
+            Token::Comma => Comma,
+            Token::Eof => Eof,
+            Token::Global => Global,
+            Token::For => For,
+            Token::Endfor => Endfor,
+            Token::Next => Next,
+            Token::While => While,
+            Token::Endwhile => Endwhile,
+            Token::Do => Do,
+            Token::Until => Until,
+            Token::And => And,
+            Token::If => If,
+            Token::Or => Or,
+            Token::Not => Not,
+            Token::Endif => Endif,
+            Token::Return => Return,
+            Token::Function => Function,
+            Token::Endfunction => Endfunction,
+            Token::Then => Then,
+            Token::Switch => Switch,
+            Token::Case => Case,
+            Token::Default => Default,
+            Token::Endswitch => Endswitch,
+            Token::Procedure => Procedure,
+            Token::Endprocedure => Endprocedure,
+            Token::Div => Div,
+            Token::Mod => Mod,
+            Token::True => True,
+            Token::False => False,
+            Token::Newline => Newline,
+            Token::Illegal => Illegal,
+        }
+    }
+}
