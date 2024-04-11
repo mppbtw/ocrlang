@@ -1,6 +1,7 @@
 use crate::lexer::Lexer;
 use crate::lexer::LexerError;
 use crate::lexer::Token;
+use crate::lexer::TokenDebugInfo;
 use crate::syntax::AssignStatement;
 use crate::syntax::BooleanExpression;
 use crate::syntax::Expression;
@@ -43,14 +44,13 @@ impl From<Token<'_>> for Precedence {
     }
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy)]
 pub enum ParserError {
     UnterminatedStringLiteral,
     InvalidNumberLiteral,
     TooLargeInteger,
 
-    #[default]
-    UnexpectedToken,
+    UnexpectedToken(TokenDebugInfo),
 }
 impl From<LexerError> for ParserError {
     fn from(value: LexerError) -> Self {
@@ -59,9 +59,9 @@ impl From<LexerError> for ParserError {
         }
     }
 }
-impl From<NoSuchInfixOperatorError> for ParserError {
-    fn from(_: NoSuchInfixOperatorError) -> Self {
-        ParserError::UnexpectedToken
+impl From<NoSuchInfixOperatorError<'_>> for ParserError {
+    fn from(value: NoSuchInfixOperatorError) -> ParserError {
+        ParserError::UnexpectedToken(value.tok.into())
     }
 }
 
@@ -146,7 +146,7 @@ impl<'a> Parser<'a> {
             Identifier(_) => Ok(Box::new(self.parse_identifier()?)),
             NumberLiteral(_) => Ok(Box::new(self.parse_number_literal_expr()?)),
             True | False => Ok(Box::new(self.parse_bool_expr()?)),
-            _ => Err(ParserError::UnexpectedToken),
+            _ => Err(ParserError::UnexpectedToken(self.tok.into())),
         }
     }
 
@@ -155,7 +155,7 @@ impl<'a> Parser<'a> {
             token:    self.tok,
             operator: match self.tok.try_into() {
                 Ok(p) => p,
-                Err(_) => return Err(ParserError::UnexpectedToken),
+                Err(_) => return Err(ParserError::UnexpectedToken(self.tok.into())),
             },
             subject:  {
                 self.next_token()?;
@@ -170,7 +170,7 @@ impl<'a> Parser<'a> {
             value: match self.tok {
                 Token::True => true,
                 Token::False => false,
-                _ => return Err(ParserError::UnexpectedToken),
+                _ => return Err(ParserError::UnexpectedToken(self.tok.into())),
             },
         })
     }
@@ -179,7 +179,7 @@ impl<'a> Parser<'a> {
         if let Token::Identifier(_) = self.tok {
             Ok(Identifier { token: self.tok })
         } else {
-            Err(ParserError::UnexpectedToken)
+            Err(ParserError::UnexpectedToken(self.tok.into()))
         }
     }
 
@@ -188,9 +188,9 @@ impl<'a> Parser<'a> {
         let value = match token {
             Token::NumberLiteral(n) => match n.parse() {
                 Ok(i) => i,
-                _ => return Err(ParserError::UnexpectedToken),
+                _ => return Err(ParserError::UnexpectedToken(self.tok.into())),
             },
-            _ => return Err(ParserError::UnexpectedToken),
+            _ => return Err(ParserError::UnexpectedToken(self.tok.into())),
         };
         Ok(IntegerLiteralExpression { token, value })
     }
@@ -207,7 +207,14 @@ impl<'a> Parser<'a> {
 
                 Ok(ReturnStatement {
                     token,
-                    value: Some(Box::new(PlaceholderExpression {})),
+                    value: {
+                        let prec: Precedence = self.tok.into();
+                        self.next_token()?;
+                        match self.tok {
+                            Token::Newline => None,
+                            _ => Some(self.parse_expr(prec)?),
+                        }
+                    },
                 })
             }
         }
@@ -223,16 +230,16 @@ impl<'a> Parser<'a> {
                 global = true;
                 match self.tok {
                     Token::Identifier(_) => ident = self.tok,
-                    _ => return Err(ParserError::UnexpectedToken),
+                    _ => return Err(ParserError::UnexpectedToken(self.tok.into())),
                 };
             }
             Token::Identifier(_) => ident = self.tok,
-            _ => return Err(ParserError::UnexpectedToken),
+            _ => return Err(ParserError::UnexpectedToken(self.tok.into())),
         }
         self.next_token()?;
 
         if !matches!(self.tok, Token::Equals) {
-            return Err(ParserError::UnexpectedToken);
+            return Err(ParserError::UnexpectedToken(self.tok.into()));
         }
 
         while !(matches!(self.tok, Token::Newline) || matches!(self.tok, Token::Eof)) {

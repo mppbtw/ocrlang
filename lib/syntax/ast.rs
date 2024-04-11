@@ -161,10 +161,10 @@ pub enum InfixOperator {
     GThan,
     Or,
 }
-impl TryFrom<Token<'_>> for InfixOperator {
-    type Error = NoSuchInfixOperatorError;
+impl<'a> TryFrom<Token<'a>> for InfixOperator {
+    type Error = NoSuchInfixOperatorError<'a>;
 
-    fn try_from(value: Token) -> Result<Self, Self::Error> {
+    fn try_from(value: Token<'a>) -> Result<InfixOperator, Self::Error> {
         use Token::*;
 
         match value {
@@ -181,7 +181,7 @@ impl TryFrom<Token<'_>> for InfixOperator {
             GThanOrEqual => Ok(Self::GThanOrEqual),
             NotEqual => Ok(Self::NotEqual),
             Or => Ok(Self::Or),
-            _ => Err(NoSuchInfixOperatorError),
+            _ => Err(NoSuchInfixOperatorError { tok: value }),
         }
     }
 }
@@ -205,7 +205,9 @@ impl Display for InfixOperator {
     }
 }
 #[derive(Debug, Clone)]
-pub struct NoSuchInfixOperatorError;
+pub struct NoSuchInfixOperatorError<'a> {
+    pub tok: Token<'a>
+}
 
 #[derive(Debug)]
 pub struct InfixExpression<'a> {
