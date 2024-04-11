@@ -10,7 +10,6 @@ use crate::syntax::Identifier;
 use crate::syntax::InfixExpression;
 use crate::syntax::IntegerLiteralExpression;
 use crate::syntax::NoSuchInfixOperatorError;
-use crate::syntax::PlaceholderExpression;
 use crate::syntax::PrefixExpression;
 use crate::syntax::ReturnStatement;
 use crate::syntax::Statement;
