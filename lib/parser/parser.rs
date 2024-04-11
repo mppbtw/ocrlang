@@ -143,7 +143,9 @@ impl<'a> Parser<'a> {
 
         match self.tok {
             Not | Plus | Minus => Ok(Box::new(self.parse_prefix_expr()?)),
-            Identifier(_) => Ok(Box::new(self.parse_identifier()?)),
+            Identifier(_) => {
+                Ok(Box::new(self.parse_identifier()?))
+            },
             NumberLiteral(_) => Ok(Box::new(self.parse_number_literal_expr()?)),
             True | False => Ok(Box::new(self.parse_bool_expr()?)),
             _ => Err(ParserError::UnexpectedToken(self.tok.into())),
@@ -197,22 +199,19 @@ impl<'a> Parser<'a> {
 
     fn parse_return_statement(&mut self) -> Result<ReturnStatement<'a>, ParserError> {
         let token = self.tok;
-        self.next_token()?;
-        match self.tok {
+        match self.peek_tok {
             Token::Newline | Token::Eof => Ok(ReturnStatement { token, value: None }),
             _ => {
-                while !(matches!(self.tok, Token::Newline) || matches!(self.tok, Token::Eof)) {
-                    self.next_token()?;
-                }
-
                 Ok(ReturnStatement {
                     token,
                     value: {
                         let prec: Precedence = self.tok.into();
-                        self.next_token()?;
-                        match self.tok {
-                            Token::Newline => None,
-                            _ => Some(self.parse_expr(prec)?),
+                        match self.peek_tok {
+                            Token::Newline | Token::Eof => None,
+                            _ => {
+                                self.next_token()?;
+                                Some(self.parse_expr(prec)?)
+                            },
                         }
                     },
                 })
@@ -266,7 +265,7 @@ impl<'a> Parser<'a> {
     pub fn new(input: Lexer<'a>) -> Result<Self, LexerError> {
         let mut p = Self {
             lexer:    input,
-            tok:      Token::default(),
+           tok:      Token::default(),
             peek_tok: Token::default(),
             prog:     Program::default(),
         };
