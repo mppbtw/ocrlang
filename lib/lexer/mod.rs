@@ -1,7 +1,7 @@
 mod tokens;
 pub use tokens::Token;
-pub use tokens::TokenType;
 pub use tokens::TokenDebugInfo;
+pub use tokens::TokenType;
 
 #[allow(clippy::module_inception)]
 mod lexer;

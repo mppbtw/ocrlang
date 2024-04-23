@@ -206,7 +206,7 @@ impl Display for InfixOperator {
 }
 #[derive(Debug, Clone)]
 pub struct NoSuchInfixOperatorError<'a> {
-    pub tok: Token<'a>
+    pub tok: Token<'a>,
 }
 
 #[derive(Debug)]
@@ -280,8 +280,21 @@ impl Expression for PrefixExpression<'_> {
     fn get_type(&self) -> ExpressionType {
         ExpressionType::Prefix(self)
     }
+
     fn pretty_print_with_brackets(&self) -> String {
-        "(".to_owned() + &self.pretty_print() + ")"
+        // This has to be done manually else brackets wont be put around the prefix's
+        // subject
+        match self.subject.get_type() {
+            ExpressionType::Infix(_) => {
+                "(".to_owned()
+                    + &self.operator.to_string()
+                    + "("
+                    + &self.subject.pretty_print()
+                    + ")"
+                    + ")"
+            }
+            _ => "(".to_owned() + &self.pretty_print() + ")",
+        }
     }
 }
 

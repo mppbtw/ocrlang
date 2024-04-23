@@ -142,11 +142,20 @@ impl<'a> Parser<'a> {
 
         match self.tok {
             Not | Plus | Minus => Ok(Box::new(self.parse_prefix_expr()?)),
-            Identifier(_) => {
-                Ok(Box::new(self.parse_identifier()?))
-            },
+            Identifier(_) => Ok(Box::new(self.parse_identifier()?)),
             NumberLiteral(_) => Ok(Box::new(self.parse_number_literal_expr()?)),
             True | False => Ok(Box::new(self.parse_bool_expr()?)),
+            LParenthasis => Ok(self.parse_grouped_expr()?),
+            _ => Err(ParserError::UnexpectedToken(self.tok.into())),
+        }
+    }
+
+    fn parse_grouped_expr(&mut self) -> Result<Box<dyn Expression + 'a>, ParserError> {
+        self.next_token()?;
+        let expr = self.parse_expr(Precedence::Lowest)?;
+        self.next_token()?;
+        match self.tok {
+            Token::RParenthasis => Ok(expr),
             _ => Err(ParserError::UnexpectedToken(self.tok.into())),
         }
     }
@@ -200,21 +209,19 @@ impl<'a> Parser<'a> {
         let token = self.tok;
         match self.peek_tok {
             Token::Newline | Token::Eof => Ok(ReturnStatement { token, value: None }),
-            _ => {
-                Ok(ReturnStatement {
-                    token,
-                    value: {
-                        let prec: Precedence = self.tok.into();
-                        match self.peek_tok {
-                            Token::Newline | Token::Eof => None,
-                            _ => {
-                                self.next_token()?;
-                                Some(self.parse_expr(prec)?)
-                            },
+            _ => Ok(ReturnStatement {
+                token,
+                value: {
+                    let prec: Precedence = self.tok.into();
+                    match self.peek_tok {
+                        Token::Newline | Token::Eof => None,
+                        _ => {
+                            self.next_token()?;
+                            Some(self.parse_expr(prec)?)
                         }
-                    },
-                })
-            }
+                    }
+                },
+            }),
         }
     }
 
@@ -264,7 +271,7 @@ impl<'a> Parser<'a> {
     pub fn new(input: Lexer<'a>) -> Result<Self, LexerError> {
         let mut p = Self {
             lexer:    input,
-           tok:      Token::default(),
+            tok:      Token::default(),
             peek_tok: Token::default(),
             prog:     Program::default(),
         };

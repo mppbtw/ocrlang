@@ -132,17 +132,18 @@ impl Token<'_> {
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct TokenDebugInfo {
-    pub tok_type: TokenType
+    pub tok_type: TokenType,
 }
 impl From<Token<'_>> for TokenDebugInfo {
     fn from(value: Token) -> Self {
         Self {
-            tok_type: value.into()
+            tok_type: value.into(),
         }
     }
 }
 
-// Variation of the Token enum except with no attached data, only the variant type data is stored
+// Variation of the Token enum except with no attached data, only the variant
+// type data is stored
 #[derive(Hash, PartialEq, Eq, Debug, Default, Clone, Copy)]
 pub enum TokenType {
     Identifier,
