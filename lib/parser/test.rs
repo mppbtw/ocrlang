@@ -157,3 +157,26 @@ fn test_infix_expression_precedence() {
         }
     }
 }
+
+#[test]
+fn test_parse_expr_with_paren() {
+    let input = [
+        ["5 * (5 + 5)", "(5*(5+5))"],
+        ["5 + 5 * 5", "(5+(5*5))"],
+        ["5 + (5 * 5)", "(5+(5*5))"],
+        ["NOT (true == false)", "(NOT (true==false))"],
+    ];
+    let input_lines = input.map(|l| l[0]).join("\n");
+    let prog = parse_from_string(&input_lines).unwrap();
+    assert_eq!(prog.statements.len(), input.len());
+
+    for (i, line) in input.iter().enumerate() {
+        assert!(matches!(
+            prog.statements[i].get_type(),
+            StatementType::Expression(_)
+        ));
+        if let StatementType::Expression(x) = prog.statements[i].get_type() {
+            assert_eq!(x.value.pretty_print_with_brackets(), line[1]);
+        }
+    }
+}
