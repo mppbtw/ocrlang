@@ -7,6 +7,7 @@ use crate::syntax::BooleanExpression;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionStatement;
 use crate::syntax::Identifier;
+use crate::syntax::IfStatement;
 use crate::syntax::InfixExpression;
 use crate::syntax::IntegerLiteralExpression;
 use crate::syntax::NoSuchInfixOperatorError;
@@ -88,6 +89,12 @@ impl<'a> Parser<'a> {
                 () if matches!(self.tok, Token::Return) => {
                     let return_stmt = self.parse_return_statement()?;
                     self.prog.statements.push(Box::new(return_stmt));
+                }
+
+                // If statements
+                () if (matches!(self.tok, Token::If)) => {
+                    let if_stmt = self.parse_if_statement()?;
+                    self.prog.statements.push(Box::new(if_stmt));
                 }
 
                 // Assign statements
@@ -203,6 +210,10 @@ impl<'a> Parser<'a> {
             _ => return Err(ParserError::UnexpectedToken(self.tok.into())),
         };
         Ok(IntegerLiteralExpression { token, value })
+    }
+
+    fn parse_if_statement(&mut self) -> Result<IfStatement<'a>, ParserError> {
+        Err(ParserError::TooLargeInteger)
     }
 
     fn parse_return_statement(&mut self) -> Result<ReturnStatement<'a>, ParserError> {
