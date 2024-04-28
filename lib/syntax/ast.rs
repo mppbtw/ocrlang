@@ -69,7 +69,7 @@ impl PrettyPrint for BlockStatement<'_> {
 impl AstNode for BlockStatement<'_> {}
 impl Statement for BlockStatement<'_> {
     fn get_type(&self) -> StatementType {
-        StatementType::Block(&self)
+        StatementType::Block(self)
     }
 }
 

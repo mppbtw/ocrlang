@@ -213,7 +213,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_if_statement(&mut self) -> Result<IfStatement<'a>, ParserError> {
-        Err(ParserError::TooLargeInteger)
+        unimplemented!("If statement parsing is not yet supported!");
     }
 
     fn parse_return_statement(&mut self) -> Result<ReturnStatement<'a>, ParserError> {
