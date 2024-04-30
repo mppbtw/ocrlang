@@ -84,7 +84,7 @@ impl PrettyPrint for AssignStatement<'_> {
     fn pretty_print(&self) -> String {
         (if self.global { "global " } else { "" }.to_owned()
             + self.ident.get_ident()
-            + " = "
+            + "="
             + &self.value.pretty_print())
             .to_owned()
     }
