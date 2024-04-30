@@ -245,7 +245,6 @@ impl<'a> Parser<'a> {
             condition,
             consequence,
             alternative: {
-                self.next_token()?;
                 if let Token::Else = self.tok {
                     self.next_token()?;
                     let block = self.parse_block_statement()?;
@@ -266,17 +265,13 @@ impl<'a> Parser<'a> {
             statements: vec![],
         };
         while !(self.tok.is_block_ender() || matches!(self.tok, Token::Eof)) {
-            dbg!(self.tok);
-            dbg!(self.peek_tok);
             if let Some(s) = self.parse_statement()? {
                 block.statements.push(s);
             }
-            dbg!("after");
 
             self.next_token()?;
             self.skip_newlines()?;
         }
-        dbg!(&block);
         Ok(block)
     }
 

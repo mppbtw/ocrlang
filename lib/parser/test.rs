@@ -185,7 +185,6 @@ fn test_parse_expr_with_paren() {
 #[test]
 fn test_parse_if_statement() {
     let input = [
-        /*
         "if true != false then
             x = 5
             y = x - 5
@@ -193,8 +192,6 @@ fn test_parse_if_statement() {
             y = 5
             x = y - 5
         endif",
-        */
-        "x = 1",
         "if x + y == 5 then
             x = y + 5
         endif",
@@ -203,7 +200,6 @@ fn test_parse_if_statement() {
     let prog = parse_from_string(&input_lines).unwrap();
     assert_eq!(prog.statements.len(), input.len());
 
-    /*
     assert!(matches!(
         prog.statements[0].get_type(),
         StatementType::If(_)
@@ -215,7 +211,6 @@ fn test_parse_if_statement() {
         assert_eq!(i.alternative.as_ref().unwrap().pretty_print(), "y=5\nx=y-5");
     }
 
-    */
     assert!(matches!(
         prog.statements[1].get_type(),
         StatementType::If(_)
