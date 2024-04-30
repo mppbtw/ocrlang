@@ -19,7 +19,58 @@ pub enum StatementType<'a> {
     Assign(&'a AssignStatement<'a>),
     Return(&'a ReturnStatement<'a>),
     Expression(&'a ExpressionStatement<'a>),
+    If(&'a IfStatement<'a>),
+    Block(&'a BlockStatement<'a>),
     Empty,
+}
+
+#[derive(Debug)]
+pub struct IfStatement<'a> {
+    pub token:       Token<'a>,
+    pub condition:   Box<dyn Expression + 'a>,
+    pub consequence: BlockStatement<'a>,
+    pub alternative: Option<BlockStatement<'a>>,
+}
+impl PrettyPrint for IfStatement<'_> {
+    fn pretty_print(&self) -> String {
+        "if ".to_string()
+            + &self.condition.pretty_print()
+            + " then\n"
+            + &self.consequence.pretty_print()
+            + &if let Some(a) = &self.alternative {
+                "else\n".to_owned() + &a.pretty_print()
+            } else {
+                String::new()
+            }
+            + "endif"
+    }
+}
+impl AstNode for IfStatement<'_> {}
+impl Statement for IfStatement<'_> {
+    fn get_type(&self) -> StatementType {
+        StatementType::If(self)
+    }
+}
+
+#[derive(Debug)]
+pub struct BlockStatement<'a> {
+    pub token:      Token<'a>,
+    pub statements: Vec<Box<dyn Statement + 'a>>,
+}
+impl PrettyPrint for BlockStatement<'_> {
+    fn pretty_print(&self) -> String {
+        self.statements
+            .iter()
+            .map(|s| s.pretty_print())
+            .collect::<Vec<String>>()
+            .join("\n")
+    }
+}
+impl AstNode for BlockStatement<'_> {}
+impl Statement for BlockStatement<'_> {
+    fn get_type(&self) -> StatementType {
+        StatementType::Block(self)
+    }
 }
 
 #[derive(Debug)]
@@ -33,7 +84,7 @@ impl PrettyPrint for AssignStatement<'_> {
     fn pretty_print(&self) -> String {
         (if self.global { "global " } else { "" }.to_owned()
             + self.ident.get_ident()
-            + " = "
+            + "="
             + &self.value.pretty_print())
             .to_owned()
     }

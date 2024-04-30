@@ -1,11 +1,12 @@
 use super::parse_from_string;
+use crate::syntax::PrettyPrint;
 use crate::syntax::StatementType;
 
 #[test]
 fn test_parse_var_assign_statement() {
-    let input = "a = 1
-global bb = 22
-ccc = 333";
+    let input = "a=1
+global bb=22
+ccc=333";
     let prog = parse_from_string(input).unwrap();
     assert_eq!(prog.statements.len(), input.lines().count());
     assert_eq!(
@@ -178,5 +179,44 @@ fn test_parse_expr_with_paren() {
         if let StatementType::Expression(x) = prog.statements[i].get_type() {
             assert_eq!(x.value.pretty_print_with_brackets(), line[1]);
         }
+    }
+}
+
+#[test]
+fn test_parse_if_statement() {
+    let input = [
+        "if true != false then
+            x = 5
+            y = x - 5
+        else 
+            y = 5
+            x = y - 5
+        endif",
+        "if x + y == 5 then
+            x = y + 5
+        endif",
+    ];
+    let input_lines = input.join("\n");
+    let prog = parse_from_string(&input_lines).unwrap();
+    assert_eq!(prog.statements.len(), input.len());
+
+    assert!(matches!(
+        prog.statements[0].get_type(),
+        StatementType::If(_)
+    ));
+    if let StatementType::If(i) = prog.statements[0].get_type() {
+        assert_eq!(i.condition.pretty_print(), "true!=false");
+        assert_eq!(i.consequence.pretty_print(), "x=5\ny=x-5");
+        assert!(i.alternative.is_some());
+        assert_eq!(i.alternative.as_ref().unwrap().pretty_print(), "y=5\nx=y-5");
+    }
+
+    assert!(matches!(
+        prog.statements[1].get_type(),
+        StatementType::If(_)
+    ));
+    if let StatementType::If(i) = prog.statements[1].get_type() {
+        assert_eq!(i.condition.pretty_print(), "x+y==5");
+        assert_eq!(i.consequence.pretty_print(), "x=y+5");
     }
 }

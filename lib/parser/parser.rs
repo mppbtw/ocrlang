@@ -3,10 +3,12 @@ use crate::lexer::LexerError;
 use crate::lexer::Token;
 use crate::lexer::TokenDebugInfo;
 use crate::syntax::AssignStatement;
+use crate::syntax::BlockStatement;
 use crate::syntax::BooleanExpression;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionStatement;
 use crate::syntax::Identifier;
+use crate::syntax::IfStatement;
 use crate::syntax::InfixExpression;
 use crate::syntax::IntegerLiteralExpression;
 use crate::syntax::NoSuchInfixOperatorError;
@@ -80,14 +82,32 @@ struct Parser<'a> {
 impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<(), ParserError> {
         loop {
+            match self.parse_statement()? {
+                Some(s) => self.prog.statements.push(s),
+                None => break,
+            }
+            self.next_token()?;
+        };
+        Ok(())
+    }
+
+    /// Returns Ok(None) only in the case of Token::Eof
+    fn parse_statement(&mut self) -> Result<Option<Box<dyn Statement + 'a>>, ParserError> {
+        loop {
             match () {
-                () if matches!(self.tok, Token::Newline) => {}
-                () if matches!(self.tok, Token::Eof) => break,
+                () if matches!(self.tok, Token::Newline) => (),
+                () if matches!(self.tok, Token::Eof) => return Ok(None),
 
                 // Return statements
                 () if matches!(self.tok, Token::Return) => {
                     let return_stmt = self.parse_return_statement()?;
-                    self.prog.statements.push(Box::new(return_stmt));
+                    return Ok(Some(Box::new(return_stmt)));
+                }
+
+                // If statements
+                () if (matches!(self.tok, Token::If)) => {
+                    let if_stmt = self.parse_if_statement()?;
+                    return Ok(Some(Box::new(if_stmt)));
                 }
 
                 // Assign statements
@@ -96,20 +116,17 @@ impl<'a> Parser<'a> {
                         && matches!(self.peek_tok, Token::Equals)) =>
                 {
                     let assign_stmt = self.parse_assign_statement()?;
-                    self.prog.statements.push(Box::new(assign_stmt));
+                    return Ok(Some(Box::new(assign_stmt)));
                 }
 
                 // Expression statements
                 _ => {
                     let exp = self.parse_expr(Precedence::Lowest)?;
-                    self.prog
-                        .statements
-                        .push(Box::new(ExpressionStatement { value: exp }));
+                    return Ok(Some(Box::new(ExpressionStatement { value: exp })));
                 }
             }
             self.next_token()?;
         }
-        Ok(())
     }
 
     fn parse_expr(&mut self, prec: Precedence) -> Result<Box<dyn Expression + 'a>, ParserError> {
@@ -205,6 +222,59 @@ impl<'a> Parser<'a> {
         Ok(IntegerLiteralExpression { token, value })
     }
 
+    fn parse_if_statement(&mut self) -> Result<IfStatement<'a>, ParserError> {
+        // If <expr> then
+        //    <block>
+        // (else
+        //    <block>)
+        // endif
+        let token = self.tok;
+        self.next_token()?;
+        let condition = self.parse_expr(Precedence::Lowest)?;
+
+        self.next_token()?;
+        if !matches!(self.tok, Token::Then) {
+            return Err(ParserError::UnexpectedToken(self.tok.into()));
+        }
+        self.next_token()?;
+
+        let consequence = self.parse_block_statement()?;
+
+        Ok(IfStatement {
+            token,
+            condition,
+            consequence,
+            alternative: {
+                if let Token::Else = self.tok {
+                    self.next_token()?;
+                    let block = self.parse_block_statement()?;
+                    if !matches!(self.tok, Token::Endif) {
+                        return Err(ParserError::UnexpectedToken(self.tok.into()));
+                    }
+                    Some(block)
+                } else {
+                    None
+                }
+            },
+        })
+    }
+
+    fn parse_block_statement(&mut self) -> Result<BlockStatement<'a>, ParserError> {
+        let mut block = BlockStatement {
+            token:      self.tok,
+            statements: vec![],
+        };
+        while !(self.tok.is_block_ender() || matches!(self.tok, Token::Eof)) {
+            if let Some(s) = self.parse_statement()? {
+                block.statements.push(s);
+            }
+
+            self.next_token()?;
+            self.skip_newlines()?;
+        }
+        Ok(block)
+    }
+
     fn parse_return_statement(&mut self) -> Result<ReturnStatement<'a>, ParserError> {
         let token = self.tok;
         match self.peek_tok {
@@ -257,6 +327,13 @@ impl<'a> Parser<'a> {
                 self.parse_expr(prec)?
             },
         })
+    }
+
+    fn skip_newlines(&mut self) -> Result<(), ParserError> {
+        while matches!(self.tok, Token::Newline) {
+            self.next_token()?;
+        }
+        Ok(())
     }
 
     pub fn next_token(&mut self) -> Result<(), LexerError> {
