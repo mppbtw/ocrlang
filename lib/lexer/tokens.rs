@@ -43,9 +43,10 @@ pub enum Token<'a> {
     Until,
     And,
     If,
+    Else,
+    Endif,
     Or,
     Not,
-    Endif,
     Return,
     Function,
     Endfunction,
@@ -87,6 +88,7 @@ pub fn lookup_keyword(ident: &str) -> Token {
         "do" => Do,
         "until" => Until,
         "if" => If,
+        "else" => Else,
         "then" => Then,
         "OR" => Or,
         "NOT" => Not,
@@ -106,6 +108,10 @@ pub fn lookup_keyword(ident: &str) -> Token {
 }
 
 impl Token<'_> {
+    pub fn is_block_ender(&self) -> bool {
+        use Token::*;
+        matches!(self, Endif | Endfunction | Endprocedure | Endfor | Endwhile | Endswitch | Else)
+    }
     /// Check if this token could be used as a prefix operator (+, -)
     pub fn is_prefix_op(&self) -> bool {
         matches!(self, Self::Plus | Self::Minus | Self::Not)
@@ -181,6 +187,7 @@ pub enum TokenType {
     Until,
     And,
     If,
+    Else,
     Or,
     Not,
     Endif,
@@ -243,6 +250,7 @@ impl From<Token<'_>> for TokenType {
             Token::Until => Until,
             Token::And => And,
             Token::If => If,
+            Token::Else => Else,
             Token::Or => Or,
             Token::Not => Not,
             Token::Endif => Endif,
