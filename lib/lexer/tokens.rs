@@ -108,6 +108,7 @@ pub fn lookup_keyword(ident: &str) -> Token {
 }
 
 impl Token<'_> {
+    // Check if this can be used to end a block (BlockStatement), like endif/endfor etc.
     pub fn is_block_ender(&self) -> bool {
         use Token::*;
         matches!(self, Endif | Endfunction | Endprocedure | Endfor | Endwhile | Endswitch | Else)

@@ -3,6 +3,7 @@ use crate::lexer::LexerError;
 use crate::lexer::Token;
 use crate::lexer::TokenDebugInfo;
 use crate::syntax::AssignStatement;
+use crate::syntax::BlockStatement;
 use crate::syntax::BooleanExpression;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionStatement;
@@ -213,7 +214,37 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_if_statement(&mut self) -> Result<IfStatement<'a>, ParserError> {
-        unimplemented!("If statement parsing is not yet supported!");
+        // If <expr> then
+        //    <block>
+        // (else
+        //    <block>)
+        // endif
+        Ok(IfStatement {
+            token:       self.tok,
+            condition:   {
+                self.next_token()?;
+                self.parse_expr(Precedence::Lowest)?
+            },
+            consequence: {
+                self.next_token()?;
+                if !matches!(self.tok, Token::Then) {
+                    return Err(ParserError::UnexpectedToken(self.tok.into()));
+                }
+                self.parse_block_statement()?
+            },
+            alternative: None,
+        })
+    }
+
+    fn parse_block_statement(&mut self) -> Result<BlockStatement<'a>, ParserError> {
+        self.next_token()?;
+        let mut block = BlockStatement {
+            token: self.tok,
+            statements: vec![],
+        };
+        while self.tok.is_block_ender() && !matches!(self.tok, Token::Eof) {
+        }
+        Ok(block)
     }
 
     fn parse_return_statement(&mut self) -> Result<ReturnStatement<'a>, ParserError> {
