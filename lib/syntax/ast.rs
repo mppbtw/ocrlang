@@ -196,6 +196,7 @@ pub enum ExpressionType<'a> {
     IntegerLiteral(&'a IntegerLiteralExpression<'a>),
     Prefix(&'a PrefixExpression<'a>),
     Infix(&'a InfixExpression<'a>),
+    FunctionCall(&'a FunctionCallExpression<'a>),
 }
 
 pub trait Expression: AstNode {
@@ -210,6 +211,18 @@ impl Default for Box<dyn Expression> {
         Box::new(Identifier {
             token: Token::Identifier("lol"),
         })
+    }
+}
+
+#[derive(Debug)]
+pub struct FunctionCallExpression<'a> {
+    pub token: Token<'a>,
+    pub func: Identifier<'a>,
+    pub args: Vec<Box<dyn Expression + 'a>>,
+}
+impl PrettyPrint for FunctionCallExpression<'_> {
+    fn pretty_print(&self) -> String {
+        self.func.get_ident().to_owned() + "(" + &self.args.iter().map(|a| a.pretty_print()).collect::<Vec<String>>().join(", ")
     }
 }
 
