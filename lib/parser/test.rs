@@ -192,7 +192,7 @@ fn test_parse_if_statement() {
             y = 5
             x = y - 5
         endif",
-        "if x + y == 5 then
+        "if x + y > 5 then
             x = y + 5
         endif",
     ];
@@ -216,7 +216,56 @@ fn test_parse_if_statement() {
         StatementType::If(_)
     ));
     if let StatementType::If(i) = prog.statements[1].get_type() {
-        assert_eq!(i.condition.pretty_print(), "x+y==5");
+        assert_eq!(i.condition.pretty_print(), "x+y>5");
         assert_eq!(i.consequence.pretty_print(), "x=y+5");
+    }
+}
+
+#[test]
+fn test_parse_function() {
+    let input = [
+        "function my_func(arg1, arg2)
+            x = 1
+            y = 2
+            x = x + 1
+            y = y + 1
+        endfunction",
+        "procedure my_proc()
+            y = 1 + 2 + 3 + 4 + 5
+            y = -1/12
+        endprocedure",
+    ];
+    let input_lines = input.join("\n");
+    let prog = parse_from_string(&input_lines).unwrap();
+    assert_eq!(prog.statements.len(), input.len());
+
+    assert!(matches!(
+        prog.statements[0].get_type(),
+        StatementType::Function(_)
+    ));
+    if let StatementType::Function(i) = prog.statements[0].get_type() {
+        assert_eq!(
+            i.pretty_print(),
+            "function my_func(arg1, arg2)
+x=1
+y=2
+x=x+1
+y=y+1
+endfunction"
+        )
+    }
+
+    assert!(matches!(
+        prog.statements[1].get_type(),
+        StatementType::Function(_)
+    ));
+    if let StatementType::Function(i) = prog.statements[1].get_type() {
+        assert_eq!(
+            i.pretty_print(),
+            "procedure my_proc()
+y=1+2+3+4+5
+y=-1/12
+endprocedure"
+        )
     }
 }

@@ -7,6 +7,7 @@ use crate::syntax::BlockStatement;
 use crate::syntax::BooleanExpression;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionStatement;
+use crate::syntax::FunctionStatement;
 use crate::syntax::Identifier;
 use crate::syntax::IfStatement;
 use crate::syntax::InfixExpression;
@@ -87,7 +88,7 @@ impl<'a> Parser<'a> {
                 None => break,
             }
             self.next_token()?;
-        };
+        }
         Ok(())
     }
 
@@ -105,9 +106,17 @@ impl<'a> Parser<'a> {
                 }
 
                 // If statements
-                () if (matches!(self.tok, Token::If)) => {
+                () if matches!(self.tok, Token::If) => {
                     let if_stmt = self.parse_if_statement()?;
                     return Ok(Some(Box::new(if_stmt)));
+                }
+
+                // Function/procedure declaration
+                () if matches!(self.tok, Token::Function)
+                    || matches!(self.tok, Token::Procedure) =>
+                {
+                    let func = self.parse_function()?;
+                    return Ok(Some(Box::new(func)));
                 }
 
                 // Assign statements
@@ -222,6 +231,63 @@ impl<'a> Parser<'a> {
         Ok(IntegerLiteralExpression { token, value })
     }
 
+    fn parse_function(&mut self) -> Result<FunctionStatement<'a>, ParserError> {
+        let token = self.tok;
+        let is_procedure = matches!(self.tok, Token::Procedure);
+        self.next_token()?;
+        let ident = match self.tok {
+            Token::Identifier(_) => self.tok.into(),
+            _ => return Err(ParserError::UnexpectedToken(self.tok.into())),
+        };
+
+        self.next_token()?;
+        if !matches!(self.tok, Token::LParenthasis) {
+            return Err(ParserError::UnexpectedToken(self.tok.into()));
+        }
+
+        let mut params = Vec::new();
+        loop {
+            self.next_token()?;
+            match self.tok {
+                Token::Identifier(_) => params.push(self.tok.into()),
+                Token::RParenthasis => break,
+                _ => return Err(ParserError::UnexpectedToken(self.tok.into())),
+            };
+
+            self.next_token()?;
+            match self.tok {
+                Token::Comma => (),
+                Token::RParenthasis => break,
+                _ => return Err(ParserError::UnexpectedToken(self.tok.into())),
+            };
+        }
+        self.next_token()?; // Skip past the RParenthasis
+        self.skip_newlines()?;
+        let body = self.parse_block_statement()?;
+        match self.tok {
+            Token::Endfunction => {
+                if is_procedure {
+                    return Err(ParserError::UnexpectedToken(self.tok.into()));
+                }
+            }
+            Token::Endprocedure => {
+                if !is_procedure {
+                    return Err(ParserError::UnexpectedToken(self.tok.into()));
+                }
+            }
+            _ => return Err(ParserError::UnexpectedToken(self.tok.into())),
+        }
+        self.skip_newlines()?;
+
+        Ok(FunctionStatement {
+            token,
+            is_procedure,
+            body,
+            ident,
+            params,
+        })
+    }
+
     fn parse_if_statement(&mut self) -> Result<IfStatement<'a>, ParserError> {
         // If <expr> then
         //    <block>
@@ -269,6 +335,7 @@ impl<'a> Parser<'a> {
                 block.statements.push(s);
             }
 
+            self.skip_newlines()?;
             self.next_token()?;
             self.skip_newlines()?;
         }
