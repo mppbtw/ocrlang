@@ -230,6 +230,7 @@ impl PrettyPrint for FunctionCallExpression<'_> {
                 .map(|a| a.pretty_print())
                 .collect::<Vec<String>>()
                 .join(", ")
+            + ")"
     }
 }
 impl AstNode for FunctionCallExpression<'_> {}

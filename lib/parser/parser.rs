@@ -127,7 +127,9 @@ impl<'a> Parser<'a> {
                     || (matches!(self.tok, Token::Identifier(_)))
                         && matches!(self.peek_tok, Token::Equals)) =>
                 {
+                    dbg!("parsing assign at", self.tok);
                     let assign_stmt = self.parse_assign_statement()?;
+                    dbg!(&assign_stmt);
                     return Ok(Some(Box::new(assign_stmt)));
                 }
 
@@ -144,7 +146,7 @@ impl<'a> Parser<'a> {
     fn parse_expr(&mut self, prec: Precedence) -> Result<Box<dyn Expression + 'a>, ParserError> {
         let ident = match self.tok {
             Token::Identifier(_) => Some(self.tok.into()),
-            _ => None
+            _ => None,
         };
         let mut left_expr = self.parse_left_expr()?;
         while !matches!(self.peek_tok, Token::Newline | Token::Eof) && prec < self.peek_tok.into() {
@@ -159,26 +161,26 @@ impl<'a> Parser<'a> {
         left: Box<dyn Expression + 'a>,
         ident: Option<Identifier<'a>>,
     ) -> Result<Box<dyn Expression + 'a>, ParserError> {
-        Ok(Box::new(InfixExpression {
-            left,
-            token: self.tok,
-            operator: self.tok.try_into()?,
-            right: {
-                let prec: Precedence = self.tok.into();
-                match self.tok {
-                    Token::LParenthasis => {
-                        match ident {
-                            Some(i)=> Box::new(self.parse_function_call(i)?),
-                            None => return Err(ParserError::UnexpectedToken(self.tok.into())),
-                        }
-                    },
-                    _ => {
-                        self.next_token()?;
-                        self.parse_expr(prec)?
-                    }
+        if self.tok == Token::LParenthasis {
+            match ident {
+                Some(i) => {
+                    Ok(Box::new(self.parse_function_call(i)?))
+                }
+                None => Err(ParserError::UnexpectedToken(self.tok.into())),
+            }
+        } else {
+            Ok(Box::new(InfixExpression {
+                left,
+                token: self.tok,
+                operator: self.tok.try_into()?,
+                right: {
+                    let prec: Precedence = self.tok.into();
+                    self.next_token()?;
+                    self.parse_expr(prec)?
                 }
             },
-        }))
+            ))
+    }
     }
 
     fn parse_left_expr(&mut self) -> Result<Box<dyn Expression + 'a>, ParserError> {
@@ -204,7 +206,10 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_function_call(&mut self, identifier: Identifier<'a>) -> Result<FunctionCallExpression<'a>, ParserError> {
+    fn parse_function_call(
+        &mut self,
+        identifier: Identifier<'a>,
+    ) -> Result<FunctionCallExpression<'a>, ParserError> {
         Ok(FunctionCallExpression {
             token: identifier.token,
             func:  identifier.token.into(),
@@ -213,13 +218,12 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_call_args(&mut self) -> Result<Vec<Box<dyn Expression + 'a>>, ParserError> {
-        dbg!("parsing args at", self.tok);
         let mut args = Vec::new();
         // The current token should be the LParenthasis
         self.next_token()?;
         self.skip_newlines()?;
         if self.tok == Token::RParenthasis {
-            return Ok(args)
+            return Ok(args);
         }
         args.push(self.parse_expr(Precedence::Lowest)?);
         self.next_token()?;
@@ -231,7 +235,7 @@ impl<'a> Parser<'a> {
             self.next_token()?;
         }
         if self.tok != Token::RParenthasis {
-            return Err(ParserError::UnexpectedToken(self.tok.into()))
+            return Err(ParserError::UnexpectedToken(self.tok.into()));
         }
 
         Ok(args)

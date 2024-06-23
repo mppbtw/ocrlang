@@ -272,11 +272,13 @@ endprocedure"
 
 #[test]
 fn test_parse_function_call() {
-    let input = "x=my_function()
-y=my_function(1, x+3, y)";
+    let input = "x=first_function()
+y=second_function(1, x+3, y)";
     let prog = parse_from_string(input).unwrap();
 
-    assert_eq!(prog.statements[0].pretty_print(), "x=my_function()");
-    assert_eq!(prog.statements[1].pretty_print(), "y=my_function(1, x+3, y)");
-
+    assert_eq!(prog.statements[0].pretty_print(), "x=first_function()");
+    assert_eq!(
+        prog.statements[1].pretty_print(),
+        "y=second_function(1, x+3, y)"
+    );
 }
