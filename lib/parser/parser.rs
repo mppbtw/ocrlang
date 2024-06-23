@@ -7,6 +7,8 @@ use crate::syntax::BlockStatement;
 use crate::syntax::BooleanExpression;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionStatement;
+use crate::syntax::ExpressionType;
+use crate::syntax::FunctionCallExpression;
 use crate::syntax::FunctionStatement;
 use crate::syntax::Identifier;
 use crate::syntax::IfStatement;
@@ -41,6 +43,7 @@ impl From<Token<'_>> for Precedence {
             FSlash | Asterisk | Mod | Div => Self::Product,
             And => Self::And,
             Or => Self::Or,
+            LParenthasis => Self::Call,
             _ => Self::Lowest,
         }
     }
@@ -139,10 +142,14 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expr(&mut self, prec: Precedence) -> Result<Box<dyn Expression + 'a>, ParserError> {
+        let ident = match self.tok {
+            Token::Identifier(_) => Some(self.tok.into()),
+            _ => None
+        };
         let mut left_expr = self.parse_left_expr()?;
         while !matches!(self.peek_tok, Token::Newline | Token::Eof) && prec < self.peek_tok.into() {
             self.next_token()?;
-            left_expr = self.parse_infix_expression(left_expr)?;
+            left_expr = self.parse_infix_expression(left_expr, ident.clone())?;
         }
         Ok(left_expr)
     }
@@ -150,6 +157,7 @@ impl<'a> Parser<'a> {
     fn parse_infix_expression(
         &mut self,
         left: Box<dyn Expression + 'a>,
+        ident: Option<Identifier<'a>>,
     ) -> Result<Box<dyn Expression + 'a>, ParserError> {
         Ok(Box::new(InfixExpression {
             left,
@@ -157,8 +165,18 @@ impl<'a> Parser<'a> {
             operator: self.tok.try_into()?,
             right: {
                 let prec: Precedence = self.tok.into();
-                self.next_token()?;
-                self.parse_expr(prec)?
+                match self.tok {
+                    Token::LParenthasis => {
+                        match ident {
+                            Some(i)=> Box::new(self.parse_function_call(i)?),
+                            None => return Err(ParserError::UnexpectedToken(self.tok.into())),
+                        }
+                    },
+                    _ => {
+                        self.next_token()?;
+                        self.parse_expr(prec)?
+                    }
+                }
             },
         }))
     }
@@ -184,6 +202,39 @@ impl<'a> Parser<'a> {
             Token::RParenthasis => Ok(expr),
             _ => Err(ParserError::UnexpectedToken(self.tok.into())),
         }
+    }
+
+    fn parse_function_call(&mut self, identifier: Identifier<'a>) -> Result<FunctionCallExpression<'a>, ParserError> {
+        Ok(FunctionCallExpression {
+            token: identifier.token,
+            func:  identifier.token.into(),
+            args:  self.parse_call_args()?,
+        })
+    }
+
+    fn parse_call_args(&mut self) -> Result<Vec<Box<dyn Expression + 'a>>, ParserError> {
+        dbg!("parsing args at", self.tok);
+        let mut args = Vec::new();
+        // The current token should be the LParenthasis
+        self.next_token()?;
+        self.skip_newlines()?;
+        if self.tok == Token::RParenthasis {
+            return Ok(args)
+        }
+        args.push(self.parse_expr(Precedence::Lowest)?);
+        self.next_token()?;
+        self.skip_newlines()?;
+        while self.tok == Token::Comma {
+            self.next_token()?;
+            self.skip_newlines()?;
+            args.push(self.parse_expr(Precedence::Lowest)?);
+            self.next_token()?;
+        }
+        if self.tok != Token::RParenthasis {
+            return Err(ParserError::UnexpectedToken(self.tok.into()))
+        }
+
+        Ok(args)
     }
 
     fn parse_prefix_expr(&mut self) -> Result<PrefixExpression<'a>, ParserError> {

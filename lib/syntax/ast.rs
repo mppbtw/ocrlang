@@ -217,12 +217,25 @@ impl Default for Box<dyn Expression> {
 #[derive(Debug)]
 pub struct FunctionCallExpression<'a> {
     pub token: Token<'a>,
-    pub func: Identifier<'a>,
-    pub args: Vec<Box<dyn Expression + 'a>>,
+    pub func:  Identifier<'a>,
+    pub args:  Vec<Box<dyn Expression + 'a>>,
 }
 impl PrettyPrint for FunctionCallExpression<'_> {
     fn pretty_print(&self) -> String {
-        self.func.get_ident().to_owned() + "(" + &self.args.iter().map(|a| a.pretty_print()).collect::<Vec<String>>().join(", ")
+        self.func.get_ident().to_owned()
+            + "("
+            + &self
+                .args
+                .iter()
+                .map(|a| a.pretty_print())
+                .collect::<Vec<String>>()
+                .join(", ")
+    }
+}
+impl AstNode for FunctionCallExpression<'_> {}
+impl Expression for FunctionCallExpression<'_> {
+    fn get_type(&self) -> ExpressionType {
+        ExpressionType::FunctionCall(self)
     }
 }
 
@@ -271,6 +284,7 @@ pub enum InfixOperator {
     GThanOrEqual,
     GThan,
     Or,
+    LParenthasis, // Sneaky trick for function calls
 }
 impl<'a> TryFrom<Token<'a>> for InfixOperator {
     type Error = NoSuchInfixOperatorError<'a>;
@@ -292,6 +306,7 @@ impl<'a> TryFrom<Token<'a>> for InfixOperator {
             GThanOrEqual => Ok(Self::GThanOrEqual),
             NotEqual => Ok(Self::NotEqual),
             Or => Ok(Self::Or),
+            LParenthasis => Ok(Self::LParenthasis),
             _ => Err(NoSuchInfixOperatorError { tok: value }),
         }
     }
@@ -312,6 +327,7 @@ impl Display for InfixOperator {
             Self::GThan => ">",
             Self::GThanOrEqual => ">=",
             Self::NotEqual => "!=",
+            Self::LParenthasis => "(",
         })
     }
 }
