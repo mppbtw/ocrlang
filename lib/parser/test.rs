@@ -269,3 +269,38 @@ endprocedure"
         )
     }
 }
+
+#[test]
+fn test_parse_function_call() {
+    let input = [
+        "x=my_function()
+y=x",
+        "y=my_function(1, x+3, y)"
+    ];
+    let input_lines = input.join("\n");
+    let prog = parse_from_string(&input_lines).unwrap();
+    assert_eq!(prog.statements.len(), input.len());
+
+    assert!(matches!(
+            prog.statements[0].get_type(),
+            StatementType::Function(_)
+    ));
+    if let StatementType::Function(i) = prog.statements[0].get_type() {
+        assert_eq!(
+            i.pretty_print(),
+            "x=my_function()"
+        )
+    }
+
+    assert!(matches!(
+            prog.statements[1].get_type(),
+            StatementType::Function(_)
+    ));
+    if let StatementType::Function(i) = prog.statements[1].get_type() {
+        assert_eq!(
+            i.pretty_print(),
+            "y=my_function(1, x+3, y)"
+        )
+    }
+
+}
