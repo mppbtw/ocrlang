@@ -21,7 +21,49 @@ pub enum StatementType<'a> {
     Expression(&'a ExpressionStatement<'a>),
     If(&'a IfStatement<'a>),
     Block(&'a BlockStatement<'a>),
+    Function(&'a FunctionStatement<'a>),
     Empty,
+}
+
+#[derive(Debug)]
+pub struct FunctionStatement<'a> {
+    pub token:        Token<'a>,
+    pub ident:        Identifier<'a>,
+    pub params:       Vec<Identifier<'a>>,
+    pub body:         BlockStatement<'a>,
+    pub is_procedure: bool,
+}
+impl PrettyPrint for FunctionStatement<'_> {
+    fn pretty_print(&self) -> String {
+        if self.is_procedure {
+            "procedure "
+        } else {
+            "function "
+        }
+        .to_owned()
+            + self.ident.get_ident()
+            + "("
+            + &self
+                .params
+                .iter()
+                .map(|p| p.get_ident())
+                .collect::<Vec<&str>>()
+                .join(", ")
+            + ")\n"
+            + &self.body.pretty_print()
+            + "\n"
+            + if self.is_procedure {
+                "endprocedure"
+            } else {
+                "endfunction"
+            }
+    }
+}
+impl AstNode for FunctionStatement<'_> {}
+impl Statement for FunctionStatement<'_> {
+    fn get_type(&self) -> StatementType {
+        StatementType::Function(self)
+    }
 }
 
 #[derive(Debug)]
@@ -154,6 +196,7 @@ pub enum ExpressionType<'a> {
     IntegerLiteral(&'a IntegerLiteralExpression<'a>),
     Prefix(&'a PrefixExpression<'a>),
     Infix(&'a InfixExpression<'a>),
+    FunctionCall(&'a FunctionCallExpression<'a>),
 }
 
 pub trait Expression: AstNode {
@@ -171,10 +214,41 @@ impl Default for Box<dyn Expression> {
     }
 }
 
+#[derive(Debug)]
+pub struct FunctionCallExpression<'a> {
+    pub token: Token<'a>,
+    pub func:  Identifier<'a>,
+    pub args:  Vec<Box<dyn Expression + 'a>>,
+}
+impl PrettyPrint for FunctionCallExpression<'_> {
+    fn pretty_print(&self) -> String {
+        self.func.get_ident().to_owned()
+            + "("
+            + &self
+                .args
+                .iter()
+                .map(|a| a.pretty_print())
+                .collect::<Vec<String>>()
+                .join(", ")
+            + ")"
+    }
+}
+impl AstNode for FunctionCallExpression<'_> {}
+impl Expression for FunctionCallExpression<'_> {
+    fn get_type(&self) -> ExpressionType {
+        ExpressionType::FunctionCall(self)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Identifier<'a> {
     /// Will always be `Token::Ident`
     pub token: Token<'a>,
+}
+impl<'a> From<Token<'a>> for Identifier<'a> {
+    fn from(value: Token<'a>) -> Self {
+        Self { token: value }
+    }
 }
 impl Identifier<'_> {
     pub fn get_ident(&self) -> &str {
@@ -211,6 +285,7 @@ pub enum InfixOperator {
     GThanOrEqual,
     GThan,
     Or,
+    LParenthasis, // Sneaky trick for function calls
 }
 impl<'a> TryFrom<Token<'a>> for InfixOperator {
     type Error = NoSuchInfixOperatorError<'a>;
@@ -232,6 +307,7 @@ impl<'a> TryFrom<Token<'a>> for InfixOperator {
             GThanOrEqual => Ok(Self::GThanOrEqual),
             NotEqual => Ok(Self::NotEqual),
             Or => Ok(Self::Or),
+            LParenthasis => Ok(Self::LParenthasis),
             _ => Err(NoSuchInfixOperatorError { tok: value }),
         }
     }
@@ -252,6 +328,7 @@ impl Display for InfixOperator {
             Self::GThan => ">",
             Self::GThanOrEqual => ">=",
             Self::NotEqual => "!=",
+            Self::LParenthasis => "(",
         })
     }
 }
